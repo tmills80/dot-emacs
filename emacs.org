@@ -464,6 +464,11 @@ If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]
 #+end_src
 
 * Org Mode                                                              :org:
+** htmlize
+Org mode uses this for exporting. Make sure I have a recent version
+#+begin_src emacs-lisp
+  (use-package htmlize)
+#+end_src
 ** Install and configure
 This =use-package= configuration is split over multiple source blocks as an experiment in literate programming
 
@@ -1617,6 +1622,10 @@ needs downloading and installing. No ELPA
     (democratize-enable-examples-in-helpful)
     (democratize-enable-examples-in-help))
 #+end_src
+
+
+
+
 * Denote
 #+begin_src emacs-lisp
   (use-package denote
