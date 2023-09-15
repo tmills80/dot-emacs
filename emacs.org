@@ -511,11 +511,6 @@ Log when I reschedule or redeadline to keep me honest
 
 **** org-todo keywords
 A lot of information here https://yiufung.net/post/org-mode-hidden-gems-pt4/
-
-
-
-
-
 ***** Keywords
 A good thread of people's ideas https://www.reddit.com/r/emacs/comments/twlmxy/open_ended_question_what_are_your_orgtodokeywords/
 
@@ -532,6 +527,14 @@ For now add NEXT,  STARTED, WAITING and CANCELLED along with timestamps and shor
                               (type "PROJECT" "|" "DONE")))
 #+end_src
 
+**** Ordered tasks
+This is disabled by default
+#+begin_src emacs-lisp
+  (setq org-enforce-todo-dependencies t
+        org-track-ordered-property-with-tag t
+        org-agenda-dim-blocked-tasks t
+        org-enforce-todo-checkbox-dependencies t)
+#+end_src
 **** Templates
 | key | action                                               |
 | b   | Bookmark. Insert a new bookmark into =bookmarks.org= |
