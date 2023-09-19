@@ -338,6 +338,20 @@ I occasionally fat finger =C-z= which minizes Emacs when in windowed mode, this 
   (global-unset-key (kbd "C-z"))
 #+end_src
 
+* User functions
+Functions I have defined
+
+** Setup agenda
+Setup windows for org-agenda as I tend to like it
+#+begin_src emacs-lisp
+  (defun my-agenda ()
+    "Setup windows with my daily plan on the left and org-agenda on the right"
+    (interactive)
+    (delete-other-windows)
+    (find-file "~/org/dailyplan.org")
+    (goto-char (point-max))
+    (org-agenda nil "a"))
+#+end_src
 * General prettifying
 ** Font settings
 General font settings
@@ -665,6 +679,8 @@ Also see this video - I could add habit tracking and more [[https://www.youtube.
             (todo "WAITING"
                   ((org-agenda-overriding-header "Tasks on hold")))))))
 #+end_src
+**** TODO org-protocol
+[[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
 **** end config
 #+begin_src emacs-lisp
 )
@@ -1604,6 +1620,11 @@ I've got a patched version of elfeed-goodies locally and use that
   (use-package elfeed-webkit
     :after elfeed)
 #+end_src
+* Mastodon
+[[https://codeberg.org/martianh/mastodon.el]]
+#+begin_src emacs-lisp
+  (use-package mastodon)
+#+end_src
 * Democratize
 https://flandrew.srht.site/listful/sw-emacs-democratize.html#install
 needs downloading and installing. No ELPA
@@ -1622,7 +1643,6 @@ needs downloading and installing. No ELPA
     (democratize-enable-examples-in-helpful)
     (democratize-enable-examples-in-help))
 #+end_src
-
 
 
 
@@ -1702,6 +1722,25 @@ keycode 202 = F24 F24 F24
            ("e r" . ement-list-rooms)
            ("c" . open-config)))
 #+end_src
+* TODO Bookmarks+
+:LOGBOOK:
+- State "TODO"       from "NEXT"       [2023-09-19 Tue 10:28]
+:END:
+
+** DONE Bookmark+
+https://www.emacswiki.org/emacs/BookmarkPlus
+
+The github mirror seems to be kept up to date, so this will do for fetching.
+:LOGBOOK:
+- State "DONE"       from "NEXT"       [2023-09-16 Sat 21:52]
+- State "NEXT"       from "TODO"       [2023-09-15 Fri 11:38]
+:END:
+#+begin_src emacs-lisp
+  (use-package bookmark+
+    :vc (:fetcher github :repo emacsmirror/bookmark-plus.git))
+#+end_src
+** TODO Look into a bookmark menu
+http://yummymelon.com/devnull/using-bookmarks-in-emacs-like-you-do-in-web-browsers.html
 * After everything loaded
 This seems to be required to be loaded after everything else for some reason. Maybe it was a bug somewhere?
 **  Line numbers
