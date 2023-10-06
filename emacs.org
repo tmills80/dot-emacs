@@ -323,19 +323,12 @@ There are still some issues
 * Miscellaneous key bindings
 Just some key bindings which don't fit elsewhere
 
-** imenu to =M-i=
-From Mastering Emacs, =imenu= is a useful command which is unbound. =M-i= is bound to =tab-to-tab-stop= which I never use, so use it for =imenu=
-#+name: keybind imenu
-#+begin_src emacs-lisp
-  (global-set-key (kbd "M-i") 'imenu)
-#+end_src
-
 ** Unset =C-z=
 I occasionally fat finger =C-z= which minizes Emacs when in windowed mode, this is annoying. =suspend-frame= is also bound to =C-x C-z= so this can be used in the terminal if it is desired.
 
 #+name: unset C-z
 #+begin_src emacs-lisp
-  (global-unset-key (kbd "C-z"))
+(unbind-key "C-z")
 #+end_src
 
 * User functions
@@ -351,6 +344,8 @@ Setup windows for org-agenda as I tend to like it
     (find-file "~/org/dailyplan.org")
     (goto-char (point-max))
     (org-agenda nil "a"))
+
+  (bind-key "C-c a" 'my-agenda)
 #+end_src
 * General prettifying
 ** Font settings
@@ -496,7 +491,7 @@ Fairly standard key bindings
 
 #+begin_src emacs-lisp
   :bind (("C-c l" . org-store-link)
-         ("C-c a" . org-agenda)
+         ;; ("C-c a" . org-agenda)
          ("C-c c" . org-capture))
 #+end_src
 *** Customize
@@ -685,14 +680,10 @@ Also see this video - I could add habit tracking and more [[https://www.youtube.
 [[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
 **** end config
 #+begin_src emacs-lisp
-)
-#+end_src
 
-**  Other configuration
-Other packages and modules
-*** OrgTempo
+** OrgTepo
 Org mode supports templates. Use =C-c C-,= to access them.
-=org-tempo= allows quicker insertion eg. the below configuration will insert an elisp src block when =< el TAB= is pressed
+=org-tempo= allows quicker insertion eg. the below configuration will insert an elisp src block when =<el TAB= is pressed
 Built into org, but needs loading
 #+begin_src emacs-lisp
   (use-package org-tempo
@@ -701,53 +692,17 @@ Built into org, but needs loading
     :config
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 #+end_src
-*** org-superstar
+** org-superstar
 Make org-mode prettier
 https://github.com/integral-dw/org-superstar-mode
 #+begin_src emacs-lisp
   (use-package org-superstar
     :hook (org-mode . org-superstar-mode))
 #+end_src
-
-*** TODO all old code - move, delete etc
-
-From [[https://systemcrafters.net/emacs-from-scratch/org-mode-basics/][SystemCrafters]]
-#+name: improve the look
+** 
+** Super Agenda
 #+begin_src emacs-lisp
-    ;; (defun dw/org-mode-setup ()
-  ;;     (org-indent-mode)
-  ;;     (variable-pitch-mode 1)
-  ;;     (auto-fill-mode 0)
-  ;;     (visual-line-mode 1)
-
-  ;;   (use-package org
-  ;;     :hook (org-mode . dw/org-mode-setup)
-  ;;     :config
-  ;;     (setq org-ellipsis " ▾"
-  ;;           org-hide-emphasis-markers t))
-
-  ;;   (use-package org-bullets
-  ;;     :after org
-  ;;     :hook (org-mode . org-bullets-mode)
-  ;;     :custom
-  ;;     (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
-
-  ;;   ;; Replace list hyphen with dot
-  ;;   (font-lock-add-keywords 'org-mode
-  ;;                           '(("^ *\\([-]\\) "
-  ;;                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
-
-  ;; ;; Make sure org-indent face is available
-  ;; (require 'org-indent)
-
-  ;; ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-;;   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-;;   (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-;;   (set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
-;;   (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-;; (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-;;   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-;;   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+  (use-package org-sidebar)
 #+end_src
 * Completion
 ** TODO corfu
@@ -1319,9 +1274,11 @@ make a mode map for eglot-mode so keys only work there
 *** elpy
 Seems to be the best Python support
 #+begin_src emacs-lisp
-    (use-package elpy
-      :init
-      (elpy-enable))
+  (use-package elpy
+    ; need this hook as only pyhon-mode is added in elpy-enable
+    :hook (python-ts-mode . elpy-mode)
+    :init
+    (elpy-enable))
 #+end_src
 
 ** elisp
@@ -1332,6 +1289,13 @@ Reformat elisp
 ** scheme
 #+begin_src emacs-lisp
   (use-package geiser-mit)
+#+end_src
+** Autohotkey
+#+begin_src emacs-lisp
+      (when (and (eq system-type 'gnu/linux)
+                 (getenv "WSLENV"))
+        (use-package ahk-mode
+          :mode "\\.ahk\\'"))
 #+end_src
 * Editing
 ** paredit
