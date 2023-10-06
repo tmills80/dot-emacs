@@ -534,16 +534,18 @@ A lot of information here https://yiufung.net/post/org-mode-hidden-gems-pt4/
 A good thread of people's ideas https://www.reddit.com/r/emacs/comments/twlmxy/open_ended_question_what_are_your_orgtodokeywords/
 
 For now add NEXT,  STARTED, WAITING and CANCELLED along with timestamps and shortcuts
+[2023-09-19 Tue] Add repeating for repeating scheduled tasks
 
 #+begin_src emacs-lisp
-    (setq org-todo-keywords '((sequence "TODO(t!/!)"
-                                        "NEXT(n!/!)"
-                                        "STARTED(s!)"
-                                        "WAITING(w@/!)"
-                                        "|"
-                                        "DONE(d!/!)"
-                                        "CANCELLED(c@/!)")
-                              (type "PROJECT" "|" "DONE")))
+  (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
+                                      "TODO(t!/!)"
+                                      "NEXT(n!/!)"
+                                      "STARTED(s!)"
+                                      "WAITING(w@/!)"
+                                      "|"
+                                      "DONE(d!/!)"
+                                      "CANCELLED(c@/!)")
+                            (type "PROJECT" "|" "DONE")))
 #+end_src
 
 **** Ordered tasks
