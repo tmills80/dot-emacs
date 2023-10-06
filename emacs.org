@@ -699,8 +699,8 @@ https://github.com/integral-dw/org-superstar-mode
   (use-package org-superstar
     :hook (org-mode . org-superstar-mode))
 #+end_src
-
-
+** TODO org-superagenda
+Try this out sometime, along with org-sidebar or org-tree-sidebar
 * Completion
 ** TODO corfu
 Needs tweaking so it doesn't take so long in eglot
