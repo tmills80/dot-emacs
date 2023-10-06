@@ -699,11 +699,8 @@ https://github.com/integral-dw/org-superstar-mode
   (use-package org-superstar
     :hook (org-mode . org-superstar-mode))
 #+end_src
-** 
-** Super Agenda
-#+begin_src emacs-lisp
-  (use-package org-sidebar)
-#+end_src
+
+
 * Completion
 ** TODO corfu
 Needs tweaking so it doesn't take so long in eglot
