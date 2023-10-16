@@ -60,11 +60,11 @@ Tangle this file. Do it deliberately. Too many times I've accidentally broken so
   (defun twem2/org-babel-tangle-config ()
     (interactive)
     (let* ((init-el (expand-file-name "emacs.el"
-				      user-emacs-directory))
-	   (init-org  (expand-file-name "emacs.org"
-					user-emacs-directory)))
+                                      user-emacs-directory))
+           (init-org  (expand-file-name "emacs.org"
+                                        user-emacs-directory)))
       (when (file-exists-p init-el)
-	(delete-file init-el))
+        (delete-file init-el))
       (require 'org)
       (org-babel-tangle-file init-org init-el)))
 
@@ -372,7 +372,7 @@ Added ETBembo font which needs installing from https://edwardtufte.github.io/et-
                  (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 140))
                 (t (set-face-attribute 'default nil :font "Fira Code Retina" :height 100)
                    (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 100)
-                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))))
+                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))
 
   ;; Fontify current frame
   (fontify-frame nil)
@@ -568,7 +568,8 @@ This is disabled by default
                     ":PROPERTIES:\n"
                     ":CREATED: %U\n"
                     ":END:\n\n"
-                    "%?"))))
+                    "%?"))
+          ))
 #+end_src
 **** source editing window popup
 when editing source block don't reorganize the frame trying plain at first - using 'display-buffer' so can be configured with the built-in window management
@@ -680,7 +681,8 @@ Also see this video - I could add habit tracking and more [[https://www.youtube.
 [[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
 **** end config
 #+begin_src emacs-lisp
-
+  )
+#+end_src
 ** OrgTepo
 Org mode supports templates. Use =C-c C-,= to access them.
 =org-tempo= allows quicker insertion eg. the below configuration will insert an elisp src block when =<el TAB= is pressed
@@ -1519,7 +1521,7 @@ There's also some tweaks such as in this example:
     (setq mu4e-get-mail-command "fetch-my-mail.sh")
     (setq mu4e-update-interval 600)
     ;; should fix the UID issues with mbsync
-    (setq mu4e-change-filenames-when-moving t)))
+    (setq mu4e-change-filenames-when-moving t))))
 #+end_example
 
 I use this package to make the headers view look nicer
@@ -1534,7 +1536,7 @@ I use this package to make the headers view look nicer
   (use-package mu4e-icalendar
     :ensure nil
     :demand t
-    :after mu4e
+    :after (mu4e org)
     :config
     (mu4e-icalendar-setup)
     (setq gnus-icalendar-org-capture-file "~/org/TODO.org"
@@ -1738,4 +1740,8 @@ Show line numbers, or not
        (display-line-numbers-mode)))
 
    (global-display-line-numbers-mode t)
+#+end_src
+* Start the server
+#+begin_src emacs-lisp
+(server-start)
 #+end_src
