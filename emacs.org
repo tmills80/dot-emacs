@@ -372,7 +372,7 @@ Added ETBembo font which needs installing from https://edwardtufte.github.io/et-
                  (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 140))
                 (t (set-face-attribute 'default nil :font "Fira Code Retina" :height 100)
                    (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 100)
-                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))
+                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))))
 
   ;; Fontify current frame
   (fontify-frame nil)
