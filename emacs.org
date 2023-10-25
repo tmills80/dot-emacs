@@ -336,6 +336,7 @@ Functions I have defined
 
 ** Setup agenda
 Setup windows for org-agenda as I tend to like it
+This is is then saved as a bookmark with Bookmark+
 #+begin_src emacs-lisp
   (defun my-agenda ()
     "Setup windows with my daily plan on the left and org-agenda on the right"
@@ -344,8 +345,6 @@ Setup windows for org-agenda as I tend to like it
     (find-file "~/org/dailyplan.org")
     (goto-char (point-max))
     (org-agenda nil "a"))
-
-  (bind-key "C-c a" 'my-agenda)
 #+end_src
 * General prettifying
 ** Font settings
@@ -491,7 +490,7 @@ Fairly standard key bindings
 
 #+begin_src emacs-lisp
   :bind (("C-c l" . org-store-link)
-         ;; ("C-c a" . org-agenda)
+         ("C-c a" . org-agenda)
          ("C-c c" . org-capture))
 #+end_src
 *** Customize
@@ -569,6 +568,11 @@ This is disabled by default
                     ":CREATED: %U\n"
                     ":END:\n\n"
                     "%?"))
+          ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
+                                             ,(format-time-string "%Y")
+                                             ,(format-time-string "%Y-%m"))
+           ,(concat "* %t [/]\n"
+                    "  - [ ] %?"))
           ))
 #+end_src
 **** source editing window popup
