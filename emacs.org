@@ -573,6 +573,10 @@ This is disabled by default
                                              ,(format-time-string "%Y-%m"))
            ,(concat "* %t [/]\n"
                     "  - [ ] %?"))
+          ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
+           ,(concat "* %^{Title|%:description}\n"
+                    "  Source: %u, %c\n\n"
+                    "  %i%?"))
           ))
 #+end_src
 **** source editing window popup
@@ -682,12 +686,12 @@ Also see this video - I could add habit tracking and more [[https://www.youtube.
                   ((org-agenda-overriding-header "Tasks on hold")))))))
 #+end_src
 **** TODO org-protocol
-[[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
+
 **** end config
 #+begin_src emacs-lisp
   )
 #+end_src
-** OrgTepo
+** OrgTempo
 Org mode supports templates. Use =C-c C-,= to access them.
 =org-tempo= allows quicker insertion eg. the below configuration will insert an elisp src block when =<el TAB= is pressed
 Built into org, but needs loading
@@ -698,6 +702,18 @@ Built into org, but needs loading
     :config
     (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
 #+end_src
+** org-protocol
+Setting up on WSL2:  [[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
+
+Template set up above.
+
+#+begin_src emacs-lisp
+  (use-package org-protocol
+    :ensure nil
+    :after org)
+#+end_src
+*** TODO: Can this be integrated with org-web-tools
+https://github.com/alphapapa/org-web-tools
 ** org-superstar
 Make org-mode prettier
 https://github.com/integral-dw/org-superstar-mode
