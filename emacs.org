@@ -457,6 +457,14 @@ Modes to use variable pitch mode in:
       :hook (org-mode . variable-pitch-mode))
 #+end_src
 
+** spacious-padding
+Provides some UI Spacing which makes for a nicer 
+
+#+begin_src emacs-lisp
+      (use-package spacious-padding
+        :config
+        (spacious-padding-mode))
+#+end_src
 * Document modes
 ** pdf-tools
 Viewing PDFs in emacs. I believe this can also annotate them.
@@ -657,7 +665,7 @@ Also see this video - I could add habit tracking and more [[https://www.youtube.
 
 #+begin_src emacs-lisp
   (setq org-agenda-custom-commands
-        '(("a" "Agenda"
+        '(("m" "Agenda"
            (
             (todo "STARTED"
                   ((org-agenda-overriding-header "In progress")))
@@ -1707,25 +1715,18 @@ keycode 202 = F24 F24 F24
            ("e r" . ement-list-rooms)
            ("c" . open-config)))
 #+end_src
-* TODO Bookmarks+
+* Bookmarks+
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2023-11-11 Sat 21:47]
 - State "TODO"       from "NEXT"       [2023-09-19 Tue 10:28]
 :END:
-
-** DONE Bookmark+
 https://www.emacswiki.org/emacs/BookmarkPlus
 
 The github mirror seems to be kept up to date, so this will do for fetching.
-:LOGBOOK:
-- State "DONE"       from "NEXT"       [2023-09-16 Sat 21:52]
-- State "NEXT"       from "TODO"       [2023-09-15 Fri 11:38]
-:END:
 #+begin_src emacs-lisp
   (use-package bookmark+
     :vc (:fetcher github :repo emacsmirror/bookmark-plus.git))
 #+end_src
-** TODO Look into a bookmark menu
-http://yummymelon.com/devnull/using-bookmarks-in-emacs-like-you-do-in-web-browsers.html
 * After everything loaded
 This seems to be required to be loaded after everything else for some reason. Maybe it was a bug somewhere?
 **  Line numbers
