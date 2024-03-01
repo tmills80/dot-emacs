@@ -319,7 +319,6 @@ There are still some issues
 	      browse-url-browser-function 'browse-url-generic
 	      search-web-default-browser 'browse-url-generic))))
 #+end_src
-
 * Miscellaneous key bindings
 Just some key bindings which don't fit elsewhere
 
@@ -475,6 +474,7 @@ If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]
 
 #+begin_src emacs-lisp
   (use-package pdf-tools
+    :if (eq system-type 'gnu/linux)
     :config
     (pdf-tools-install))
 #+end_src
@@ -728,6 +728,15 @@ https://github.com/integral-dw/org-superstar-mode
 #+begin_src emacs-lisp
   (use-package org-superstar
     :hook (org-mode . org-superstar-mode))
+#+end_src
+** org-webtools
+Download and convert websites into org files or headings.
+I'm going to trial using this alongside denote for capturing reference information
+
+https://github.com/alphapapa/org-web-tools
+
+#+begin_src emacs-lisp
+  (use-package org-web-tools)
 #+end_src
 ** TODO org-superagenda
 Try this out sometime, along with org-sidebar or org-tree-sidebar
@@ -1324,6 +1333,11 @@ Reformat elisp
         (use-package ahk-mode
           :mode "\\.ahk\\'"))
 #+end_src
+** Docker
+#+begin_src emacs-lisp
+  (use-package docker
+    :bind ("C-c d" . docker))
+#+end_src
 * Editing
 ** paredit
 #+begin_src emacs-lisp
@@ -1373,12 +1387,15 @@ Just in time spell checking
 
 * Terminals and shell
 ** vterm
+[2024-02-27 Tue] Disabled - I haven't used this in a while, eat does what I want
+
 A terminal emulator in emacs, using the =vterm= library [[https://github.com/akermu/emacs-libvterm]]
 
 This is great if I have a lot of output to put to the screen.
 
 #+begin_src emacs-lisp
-(use-package vterm)
+  (use-package vterm
+    :disabled)
 #+end_src
 ** eat
 Entirely in elisp and quick. Can also provide better terminal emulation for eshell
@@ -1506,6 +1523,7 @@ Again, actual config is not in this repository, but I make extensive use of cust
 There's also some tweaks such as in this example:
 #+begin_example emacs-lisp
 (use-package mu4e
+  :if (eq system-type 'gnu/linux)
   :ensure nil
                                         ;    :load-path "/usr/local/share/emacs/site-lisp/mu4e"
   :demand t
@@ -1636,9 +1654,23 @@ needs downloading and installing. No ELPA
     (democratize-enable-examples-in-helpful)
     (democratize-enable-examples-in-help))
 #+end_src
+* Dired
+From Prot: [ Watch: <https://protesilaos.com/codelog/2023-06-26-emacs-file-dired-basics/> (2023-06-26) ]
 
+A lot of this is taken from Prot's config: https://protesilaos.com/emacs/dotemacs#h:f8b08a77-f3a8-42fa-b1a9-f940348889c3
 
+#+begin_src emacs-lisp
+  (use-package dired
+    :ensure nil
+    :config
+    (setq dired-recursive-copies 'always)
+    (setq dired-recursive-deletes 'always)
+    (setq delete-by-moving-to-trash t)
+    (setq dired-auto-revert-buffer #'dired-directory-changed-p)
+    :hook ((dired-mode . dired-hide-details-mode)
+           (dired-mode . hl-line-mode)))
 
+#+end_src
 * Denote
 #+begin_src emacs-lisp
   (use-package denote
@@ -1668,9 +1700,27 @@ needs downloading and installing. No ELPA
     (setq denote-known-keywords '("emacs" "radio"))
     (setq denote-infer-keywords t)
     (setq denote-sort-keywords t)
-    (setq denote-file-type nil) ; Default: Org
-    (setq denote-promptes '(title keyword)) ; Maybe signature in the future?
-    (setq denote-allow-multi-word-keywords t))
+    (setq denote-file-type nil)           ; Default: Org
+    (setq denote-prompts '(subdirectory title keywords)) ; Maybe signature in the future?
+    (setq denote-allow-multi-word-keywords t)
+    ;; use consult ripgrep to search denote notes
+    (if (fboundp 'consult-ripgrep)
+        (defun consult-denote-ripgrep ()
+          "Search with 'rg' for files in the denote-directory"
+          (interactive)
+          (consult-ripgrep denote-directory ""))))
+#+end_src
+
+** consult-notes
+Use consult to select notes
+#+begin_src emacs-lisp
+  (use-package consult-notes
+    :commands (consult-notes
+               const-notes-search-in-all-notes)
+    :config
+    (setq consult-notes-file-dir-sources
+          `(("Denote Notes" ?d ,(denote-directory))
+            ("Music Notes" ?m ,(concat (denote-directory) "music/")))))
 #+end_src
 * TODO session management
 Need to find some way to save state across sessions
