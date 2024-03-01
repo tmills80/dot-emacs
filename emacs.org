@@ -6,6 +6,80 @@
 #+STARTUP: overview
 #+FILETAGS: emacs
 #+copyright: Copyright (c) 2023 Tristan Mills <tristan@eridu.org.uk>
+#+PROPERTY: header-args :tangle init.el
+
+#+begin_src emacs-lisp :tangle early-init.el
+;;; early-init.el --- Early Init File -*- lexical-binding: t -*-
+
+;; Copyright (c) 2020-2022  Protesilaos Stavrou <info@protesilaos.com>
+
+;; Author: Protesilaos Stavrou <info@protesilaos.com>
+;; URL: https://protesilaos.com/emacs/dotemacs
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "28.1"))
+
+;; This file is NOT part of GNU Emacs.
+
+;; This file is free software: you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published by the
+;; Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This file is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Prior to Emacs 27, the `init.el' was supposed to handle the
+;; initialisation of the package manager, by means of calling
+;; `package-initialize'.  Starting with Emacs 27, the default
+;; behaviour is to start the package manager before loading the init
+;; file.
+;;
+;; See my dotfiles: https://git.sr.ht/~protesilaos/dotfiles
+
+;;; Code:
+
+(dolist (var '(default-frame-alist initial-frame-alist))
+  (add-to-list var '(width . (text-pixels . 1600)))
+  (add-to-list var '(height . (text-pixels . 900))))
+
+;; Initialise installed packages
+(setq package-enable-at-startup t)
+
+(defvar package-quickstart)
+
+;; Allow loading from the package cache
+(setq package-quickstart t)
+
+;; Do not resize the frame at this early stage.
+(setq frame-inhibit-implied-resize t)
+
+;; Disable GUI elements
+;;(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(setq inhibit-splash-screen t)
+(setq use-dialog-box t)                 ; only for mouse events
+(setq use-file-dialog nil)
+
+(setq inhibit-startup-echo-area-message user-login-name) ; read the docstring
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-buffer-menu t)
+
+(setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
+
+;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+
+
+;;; early-init.el ends here
+
+#+end_src
 
 * License
 #+begin_src emacs-lisp
@@ -28,7 +102,8 @@ Emacs configuration.
 
 Currently this is used on:
 - WSL2
-
+- Windows
+  
 In the past I've used previous iterations on MacOS X, and I am experimenting with Android.
 
 If you are looking at the public version of this, then some links will probably not work, and there will be missing sections. Do not just try and use this as is - it will probably fail
@@ -41,36 +116,6 @@ There's also quite a few blogs where I find things
 + [[file:elfeed.org::*Emacs][My emacs blog feed]]
 + [[https://karl-voit.at/][Karl Voit]] is a very useful blog for using Org mode
 
-* Initialization
-** The 'early init'
-I have an =early-init.el= which sets some things up:
-
-#+include: early-init.el src emacs-lisp :tangle no
-
-** Regular init
-The =init.el= no longer uses org to load this file, it requires it to be tangled into `emacs.el` separately
-
-#+include: init.el src emacs-lisp :tangle no
-** Tangling
-Tangle this file. Do it deliberately. Too many times I've accidentally broken something
-
-#+name: tangling
-#+begin_src emacs-lisp
-  ;; Tangle my config
-  (defun twem2/org-babel-tangle-config ()
-    (interactive)
-    (let* ((init-el (expand-file-name "emacs.el"
-                                      user-emacs-directory))
-           (init-org  (expand-file-name "emacs.org"
-                                        user-emacs-directory)))
-      (when (file-exists-p init-el)
-        (delete-file init-el))
-      (require 'org)
-      (org-babel-tangle-file init-org init-el)))
-
-  ;; run tangle upon exit
-  ;(add-hook 'kill-emacs-hook #'twem2/org-babel-tangle-config)
-#+end_src
 * 29.1 bugfix for tramp 2.6.1.1.1
 Fix from notes about GNU ELPA version
 #+begin_src emacs-lisp
