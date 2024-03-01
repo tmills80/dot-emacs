@@ -42,14 +42,15 @@ There's also quite a few blogs where I find things
 + [[file:elfeed.org::*Emacs][My emacs blog feed]]
 + [[https://karl-voit.at/][Karl Voit]] is a very useful blog for using Org mode
 
+*** Prot's configuration
+I've taken a fair amount from Prot's fantastically documented Emacs configuration. Especially the module system.
+I can't recommend going through this enough: [[https://protesilaos.com/emacs/dotemacs][<https://protesilaos.com/emacs/dotemacs>]]
+
+Whilst there you should look at Prot's many, exceedingly useful, packages. They're fantastically documented, and the code is well organized.
+You'll notice quite a few I use
+
 * Early initialization of Emacs
 =early-init.el= is run early in the Emacs startup process.  See [[info:emacs#Early Init File][emacs#Early Init File]]
-
-#+begin_src emacs-lisp :tangle early-init.el
-;;(dolist (var '(default-frame-alist initial-frame-alist))
-;;  (add-to-list var '(width . (text-pixels . 1600)))
-;;  (add-to-list var '(height . (text-pixels . 900))))
-#+end_src
 
 ** Package initialization
 I use =package.el= to manage packages. I once tried =straight.el=, but it complicated things too much.
@@ -58,39 +59,166 @@ Setting =package-enable-at-startup= to non-nil makes installed packages availabl
 #+begin_src emacs-lisp :tangle early-init.el
 ;; Initialise installed packages
 (setq package-enable-at-startup t)
-
-;(defvar package-quickstart)
-
-;; Allow loading from the package cache
-;(setq package-quickstart t)
 #+end_src
 
+** Initial frame settings
+Turn off personal annoyances
+Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/]]
+
+#+begin_src emacs-lisp :tangle early-init.el
+  ;; First frame is full screen
+  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+
+  ;; Do not resize the frame
+  (setq frame-inhibit-implied-resize t)
+
+  ;; Disable GUI elements
+  ;;(menu-bar-mode -1)   ; I like the menu bar for discovery
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (setq inhibit-startup-screen t)
+  (setq use-dialog-box t)                 ; only used for mouse events
+  (setq use-file-dialog nil)              ; don't ever use this
+
+  (setq inhibit-startup-echo-area-message "tristan") ; read the docstring
+
+  (setq inhibit-startup-buffer-menu t)
+#+end_src
+
+
+** Turn off native compilation warnings                       :disabled:
+Should this be in =init.el=?
 #+begin_src emacs-lisp
-;; Do not resize the frame at this early stage.
-(setq frame-inhibit-implied-resize t)
-
-;; Disable GUI elements
-;;(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
-(setq inhibit-splash-screen t)
-(setq use-dialog-box t)                 ; only for mouse events
-(setq use-file-dialog nil)
-
-(setq inhibit-startup-echo-area-message user-login-name) ; read the docstring
-(setq inhibit-startup-screen t)
-(setq inhibit-startup-buffer-menu t)
-
-(setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
-
-;(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-
-
-;;; early-init.el ends here
-
+  (setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
 #+end_src
 
-* 29.1 bugfix for tramp 2.6.1.1.1
+
+* The main Emacs initialization file: =init.el=
+** TODO options to enable or disable loading of modules
+** Confirm kill
+I have a habit of fat fingering =C-x C-c=
+#+begin_src emacs-lisp :tangle init.el
+  (setq confirm-kill-emacs 'yes-or-no-p)
+#+end_src
+
+** Put Custom changes in their own file
+By default Emacs save anything from =M-x customize= at the end of the init file. I never want this, my init files should only contain code I have written
+Should this go in a temporary file so I never have to worry about it?
+#+begin_src emacs-lisp :tangle init.el
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+;  (load custom-file)  ; disable as I don't use customization so there should be nothing in there!
+#+end_src
+** TODO all those basic settings
+** Add module and personal lisp sources to the load path
+Here I add two directories in my configuration directory (typically =~/.emacs.d/=) to the load-path
+- =twem2-config-modules= is the directory where the configuration modules are kept
+- =twem2-lisp= is the directory where custom lisp is kept
+In both cases the files should provide a package which is loaded below
+(again, credit to Prot)
+#+begin_src emacs-lisp :tangle init.el
+(mapc
+ (lambda (string)
+   (add-to-list 'load-path (locate-user-emacs-file string)))
+ '("twem2-lisp" "twem2-config-modules"))
+#+end_src
+** Load modules
+Each module ~provides~ a package
+#+begin_src emacs-lisp :tangle init.el
+(require 'twem2-wsl2)
+(require 'twem2-theme)
+#+end_src
+* WSL2 configuration
+** Use the windows browser
+There are still some issues
+ - =M-w= doesn't always copy to the Windows clipboard.
+ - Some links don't open properly from =mu4e= so need to be copied
+   
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-wsl2.el :mkdirp yes
+  (when (and (eq system-type 'gnu/linux)
+	     (getenv "WSLENV"))
+    ;; Make emacs use default Windows browser
+    (let ((cmd-exe "/mnt/c/Windows/System32/cmd.exe")
+	  (cmd-args '("/c" "start")))
+      (when (file-exists-p cmd-exe)
+	(setq browse-url-generic-program cmd-exe
+	      browse-url-generic-args cmd-args
+	      browse-url-browser-function 'browse-url-generic
+	      search-web-default-browser 'browse-url-generic))))
+#+end_src
+** Provide the WSL2 module
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-wsl2.el
+(provide 'twem2-wsl2)
+#+end_src
+* Themeing module
+This module provides visual customization items
+**  ef-themes
+ef-themes has several very nice themes
+https://protesilaos.com/emacs/ef-themes
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el :mkdirp yes
+  (use-package ef-themes
+    :ensure t
+    :config
+    ;; disable any themes to avoid any clashes
+    (mapc #'disable-theme custom-enabled-themes)
+    ;; two themes to toggle between
+    (setq ef-themes-to-toggle '(ef-spring ef-autumn))
+    (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
+          ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
+    ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
+    (ef-themes-select 'ef-spring))
+#+end_src
+
+Bind =<f5>= to the toggle function
+#+name: toggle theme
+#+begin_src emacs-lisp
+(define-key global-map (kbd "<f5>") #'ef-themes-toggle)
+#+end_src
+** TODO Font size settings
+I should look into l: <https://protesilaos.com/emacs/fontaine> - it looks like this it does this even better
+
+This sets the font size depending on the screen size
+Cribbed from somewhere on the Internet
+
+For fixed width I use ~Fira Code Retina~
+For variable width I use ~ETBembo~ font which needs installing from https://edwardtufte.github.io/et-book/
+
+#+name: fontify frame
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el 
+  (defun fontify-frame (frame)
+    "Change the font size based on screen size"
+    (interactive "i")
+    (if window-system
+        (progn
+          (cond ((> (x-display-pixel-width) 2000)
+                 (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
+                 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
+                 (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 200))
+                ((> (x-display-pixel-width) 1600)
+                 (set-face-attribute 'default nil :font "Fira Code Retina" :height 120)
+                 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 120)
+                 (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 140))
+                (t (set-face-attribute 'default nil :font "Fira Code Retina" :height 100)
+                   (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 100)
+                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))))
+
+  ;; Fontify current frame
+  (fontify-frame nil)
+
+  ;; ;; Fontify any future frames
+  (push 'fontify-frame after-make-frame-functions)
+
+  ;; ;; Bind fontify-frame to F12
+  (global-set-key (kbd "<f12>") 'fontify-frame)
+#+end_src
+
+** Provide the theme module
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
+(provide 'twem2-theme)
+#+end_src
+* ------ below here is not yet brought in ------
+
+* 29.1 bugfix for tramp 2.6.1.1.1                                  :disabled:
 Fix from notes about GNU ELPA version
 #+begin_src emacs-lisp
   (when (string-equal emacs-version "29.1")
@@ -106,12 +234,6 @@ Fix from notes about GNU ELPA version
 * Miscellaneous settings
 
 A collection of settings which don't fit elsewhere. Mostly just small usability settings.
-
-** Confirm kill
-I have a habit of fat fingering =C-x C-c=
-#+begin_src emacs-lisp
-  (setq confirm-kill-emacs 'yes-or-no-p)
-#+end_src
 
 ** Fringe mode
 Add a small fringe to the window
@@ -161,13 +283,9 @@ See [[https://www.emacswiki.org/emacs/SavePlace][https://www.emacswiki.org/emacs
 #+begin_src emacs-lisp
   (save-place-mode 1)
 #+end_src
-** Put Custom changes in their own file
-#+begin_src emacs-lisp
-  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-  (load custom-file)
-#+end_src
 
-** Set increase gc-cons-threshold
+
+** increase gc-cons-threshold
 Should help with slowdowns due to eglot / lsp communication using lots of memory
 #+begin_src emacs-lisp
   (setq gc-cons-threshold 100000000)
@@ -255,14 +373,6 @@ I don't see any use of trailing whitespace.
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+END_SRC
 
-
-** start up with a maximized frame
-[[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/][https://emacsredux.com/blog/2020/12/04/maximize-the-emacs-frame-on-startup/]]
-
-#+begin_src emacs-lisp
-  (add-to-list 'initial-frame-alist '(fullscreen . maximized))
-#+end_src
-
 * Package management
 I did try using =straight= for package management, but I didn't like it, and deciding the builtin =package.el= sufficed 
 
@@ -321,23 +431,7 @@ This functionality is currently in the mainline emacs branch so will be included
 #+end_src
 
 * Environment specific settings
-** WSL2
-There are still some issues
- - =M-w= doesn't always copy to the Windows clipboard.
- - Some links don't open properly from =mu4e= so need to be copied
-   
-#+begin_src emacs-lisp
-  (when (and (eq system-type 'gnu/linux)
-	     (getenv "WSLENV"))
-    ;; Make emacs use default Windows browser
-    (let ((cmd-exe "/mnt/c/Windows/System32/cmd.exe")
-	  (cmd-args '("/c" "start")))
-      (when (file-exists-p cmd-exe)
-	(setq browse-url-generic-program cmd-exe
-	      browse-url-generic-args cmd-args
-	      browse-url-browser-function 'browse-url-generic
-	      search-web-default-browser 'browse-url-generic))))
-#+end_src
+
 * Miscellaneous key bindings
 Just some key bindings which don't fit elsewhere
 
@@ -367,68 +461,14 @@ This is is then saved as a bookmark with Bookmark+
 * General prettifying
 ** Font settings
 General font settings
-*** Set font size based on screen resolution
-Cribbed from somewhere on the Internet
 
-Added ETBembo font which needs installing from https://edwardtufte.github.io/et-book/
-
-#+name: fontify frame
-#+begin_src emacs-lisp
-  (defun fontify-frame (frame)
-    "Change the font size based on screen size"
-    (interactive "i")
-    (if window-system
-        (progn
-          (cond ((> (x-display-pixel-width) 2000)
-                 (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
-                 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
-                 (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 200))
-                ((> (x-display-pixel-width) 1600)
-                 (set-face-attribute 'default nil :font "Fira Code Retina" :height 120)
-                 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 120)
-                 (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 140))
-                (t (set-face-attribute 'default nil :font "Fira Code Retina" :height 100)
-                   (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 100)
-                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))))
-
-  ;; Fontify current frame
-  (fontify-frame nil)
-
-  ;; ;; Fontify any future frames
-  (push 'fontify-frame after-make-frame-functions)
-
-  ;; ;; Bind fontify-frame to F12
-  (global-set-key (kbd "<f12>") 'fontify-frame)
-#+end_src
 *** Emoji support
 From the [[help:Package][ement README]]
 #+begin_src emacs-lisp
   (setf use-default-font-for-symbols nil)
   (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
 #+end_src
-** Themeing
-*** ef-themes
-ef-themes has several very nice themes
-https://protesilaos.com/emacs/ef-themes
 
-#+begin_src emacs-lisp
-  (use-package ef-themes
-    :config
-    ;; disable any themes to avoid any clashes
-    (mapc #'disable-theme custom-enabled-themes)
-    ;; two themes to toggle between
-    (setq ef-themes-to-toggle '(ef-spring ef-autumn))
-    (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
-          ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
-    ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
-    (ef-themes-select 'ef-spring))
-#+end_src
-
-Bind =<f5>= to the toggle function
-#+name: toggle theme
-#+begin_src emacs-lisp
-(define-key global-map (kbd "<f5>") #'ef-themes-toggle)
-#+end_src
 
 ** Modeline
 Customizing the modeline
