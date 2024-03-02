@@ -53,7 +53,6 @@ You'll notice quite a few I use
 =early-init.el= is run early in the Emacs startup process.  See [[info:emacs#Early Init File][emacs#Early Init File]]
 
 ** Package initialization
-I use =package.el= to manage packages. I once tried =straight.el=, but it complicated things too much.
 Setting =package-enable-at-startup= to non-nil makes installed packages available in =init.el=
 
 #+begin_src emacs-lisp :tangle early-init.el
@@ -92,7 +91,6 @@ Should this be in =init.el=?
   (setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
 #+end_src
 
-
 * The main Emacs initialization file: =init.el=
 ** TODO options to enable or disable loading of modules
 ** Confirm kill
@@ -107,6 +105,60 @@ Should this go in a temporary file so I never have to worry about it?
 #+begin_src emacs-lisp :tangle init.el
   (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 ;  (load custom-file)  ; disable as I don't use customization so there should be nothing in there!
+#+end_src
+
+** Set up packages
+I use =package.el= to install packages. This is built-in.
+I did try =straight.el=, but it complicated things too much for too little benefit. Looking at other alternatives,
+I remain unconvinced that they solve anything for me (obviously, your mileage might vary - they may be perfect
+for your use case)
+
+Prot has a good article about package archives, priorities and pinning: <https://protesilaos.com/codelog/2022-05-13-emacs-elpa-devel/>.
+It has convinced me to try out ~gnu-elpa-devel~ and to set priorities
+#+begin_src emacs-lisp :tangle init.el
+  ;;;; Package management
+  (require 'package)
+
+  ;; I want to set projects myself
+  (setq package-vc-register-as-project nil) ; Emacs 30
+
+  (add-hook 'package-menu-mode-hook #'hl-line-mode)
+
+  ;; Also read: <https://protesilaos.com/codelog/2022-05-13-emacs-elpa-devel/>
+  (setq package-archives
+        '(("gnu-elpa" . "https://elpa.gnu.org/packages/")
+          ("gnu-elpa-devel" . "https://elpa.gnu.org/devel/")
+          ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+          ("melpa" . "https://melpa.org/packages/")))
+
+  ;; Highest number gets priority (what is not mentioned has priority 0)
+  (setq package-archive-priorities
+        '(("gnu-elpa" . 3)
+          ("melpa" . 2)
+          ("nongnu" . 1)))
+
+  ;; I don't compile emacs that frequently, and run stable in some situations
+  (setq package-install-upgrade-built-in t)
+#+end_src
+** vc-use-package
+Install packages from version control using =package-vc-install= in =use-package=
+
+This is included in the built in =use-package= as of Emacs 30, but is not in the =gnu-elpa= version
+(despite having the same version number)
+
+#+begin_src emacs-lisp :tangle init.el
+  (if (version< emacs-version "30")
+      ((unless (package-installed-p 'vc-use-package)
+         (package-vc-install "https://github.com/slotThe/vc-use-package"))
+       (require 'vc-use-package)))
+#+end_src
+** Package pinning
+Packages to pin to particular sources
+This doesn't actually appear to work for ~built-in~ but I want to document that I want the built-in version of  =use-package=
+#+begin_src emacs-lisp :tangle init.el
+  ;; Pinning to "built-in" doesn't seem to work, but I want to document the requirement
+  (setq package-pinned-packages
+        '((use-package . "built-in")))
 #+end_src
 ** TODO all those basic settings
 ** Add module and personal lisp sources to the load path
@@ -124,8 +176,10 @@ In both cases the files should provide a package which is loaded below
 ** Load modules
 Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
-(require 'twem2-wsl2)
-(require 'twem2-theme)
+  (require 'twem2-wsl2)
+  (require 'twem2-theme)
+  (require 'twem2-org)
+  (require 'twem2-email)
 #+end_src
 * WSL2 configuration
 ** Use the windows browser
@@ -171,11 +225,11 @@ https://protesilaos.com/emacs/ef-themes
 
 Bind =<f5>= to the toggle function
 #+name: toggle theme
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
 (define-key global-map (kbd "<f5>") #'ef-themes-toggle)
 #+end_src
 ** TODO Font size settings
-I should look into l: <https://protesilaos.com/emacs/fontaine> - it looks like this it does this even better
+I should look into  <https://protesilaos.com/emacs/fontaine> - it looks like this it does this even better
 
 This sets the font size depending on the screen size
 Cribbed from somewhere on the Internet
@@ -211,10 +265,209 @@ For variable width I use ~ETBembo~ font which needs installing from https://edwa
   ;; ;; Bind fontify-frame to F12
   (global-set-key (kbd "<f12>") 'fontify-frame)
 #+end_src
+** spacious-padding
+Provides some UI Spacing which makes for a nicer experience
+ <https://protesilaos.com/emacs/spacious-padding>
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
+  (use-package spacious-padding
+    :ensure t
+    :config
+    (spacious-padding-mode))
+#+end_src
 
 ** Provide the theme module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
 (provide 'twem2-theme)
+#+end_src
+* org-mode module
+I make extensive use of =org-mode= for all sorts of things
+** TODO Install and configure org
+I bind some common functions globally:
+- =C-c l=  to =org-store-link=
+- =C-c a= to =org-agenda=
+- =C-c c= to =org-capture=
+
+This could do with being split up somehow.
+Some of the =:config= section is customizable, so should probably be in =:custom= in case code is run on setting (or the =setopt= macro could be used)
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el :mkdirp yes
+  (use-package org
+    :ensure t
+    :bind (("C-c l" . org-store-link)
+           ("C-c a" . org-agenda)
+           ("C-c c" . org-capture))
+    :custom
+    (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
+    :config
+    ;; Logging
+    (setq org-log-into-drawer t
+          org-log-reschedule 'time
+          org-log-redeadline 'time)
+    ;; TODO keywords
+    (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
+                                        "TODO(t!/!)"
+                                        "NEXT(n!/!)"
+                                        "STARTED(s!)"
+                                        "WAITING(w@/!)"
+                                        "|"
+                                        "DONE(d!/!)"
+                                        "CANCELLED(c@/!)")
+                              (type "PROJECT" "|" "DONE")))
+    ;; ordering of tasks
+    (setq org-enforce-todo-dependencies t
+          org-track-ordered-property-with-tag t
+          org-agenda-dim-blocked-tasks t
+          org-enforce-todo-checkbox-dependencies t)
+    ;; Capture templates
+    (setq org-capture-templates
+          `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
+             ,(concat "* %?\n"
+                      ":PROPERTIES:\n"
+                      ":CREATED: %U\n"
+                      ":END:\n\n")
+             :empty-lines 1)
+            ("t" "TODO" entry (file+headline "~/org/TODO.org" "Unreviewed")
+             ,(concat "* TODO %^{Title}\n"
+                      ":PROPERTIES:\n"
+                      ":CREATED: %U\n"
+                      ":END:\n\n"
+                      "%?"))
+            ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
+                                               ,(format-time-string "%Y")
+                                               ,(format-time-string "%Y-%m"))
+             ,(concat "* %t [/]\n"
+                      "  - [ ] %?"))
+            ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
+             ,(concat "* %^{Title|%:description}\n"
+                      "  Source: %u, %c\n\n"
+                      "  %i%?"))
+            ))
+    ;; Source editing popup window
+    ; TODO commenting out to see if this is still what I want
+    ;  (setq org-src-window-setup 'plain)
+    ;; Catch accidental deletions of whole subtrees
+    (setq org-fold-catch-invisible-edits 'smart)
+    ;; Only count direct children of check boxes
+    (setq org-checkbox-hierarchical-statistics t)
+
+    ;;; Refiling
+    ;; Set targets to all agenda files
+    (setq org-refile-targets
+          '((nil :maxlevel . 9)
+            (org-agenda-files :maxlevel . 9)))
+    ;; Allow making top level tasks (start targets with filename)
+    (setq org-refile-use-outline-path 'file)
+    ;; Give complete targets in completion - better for company setup
+    (setq org-outline-path-complete-in-steps nil)
+
+    ;;; Styling
+    ;; Indented mode (when not turned off explicitly)
+    (setq org-startup-indented t)
+    ;; Change the ellipsis
+    (setq org-ellipsis "⤵")
+    ;; Custom agenda
+      (setq org-agenda-custom-commands
+          '(("m" "Agenda"
+             (
+              (todo "STARTED"
+                    ((org-agenda-overriding-header "In progress")))
+              (agenda ""
+                      ((org-agenda-overriding-header "Daily Agenda")
+                       (org-agenda-span 1)
+                       (org-deadline-warning-days 0)
+                       (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+                       ))
+              (agenda ""
+                      ((org-agenda-overriding-header "Next three days")
+                       (org-agenda-start-on-weekday nil)
+                       (org-agenda-start-day "+1d")
+                       (org-agenda-span 3)
+                       (org-deadline-warning-days 0)))
+              (agenda ""
+                      ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
+                       (org-agenda-span 14)
+                       (org-agenda-show-all-dates nil)
+                       (org-agenda-time-grid nil)
+                       (org-deadline-warning-days 0)
+                       (org-agenda-entry-types '(:deadline))))
+              (todo "NEXT"
+                    ((org-agenda-overriding-header "Tasks to do next")))
+              (todo "WAITING"
+                    ((org-agenda-overriding-header "Tasks on hold")))))))
+    )
+#+end_src
+** OrgTempo templating
+Org mode supports templates. Use =C-c C-,= to access them.
+=org-tempo= allows quicker insertion eg. the below configuration will insert an elisp src block when =<el TAB= is pressed
+Built into org, but needs loading
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
+  (use-package org-tempo
+    :after org
+    :config
+    (dolist
+        (template
+         '(("el" . "src emacs-lisp")
+           ("elm" . "src emacs-lisp :tangle twem2-config-modules/")))
+      (add-to-list 'org-structure-template-alist template)))
+#+end_src
+** Setting up on WSL2:  [[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
+
+Template set up above.
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
+  (use-package org-protocol
+    :after org)
+#+end_src
+** org-superstar
+Make org-mode prettier
+https://github.com/integral-dw/org-superstar-mode
+#+begin_src emacs-lisp
+  (use-package org-superstar
+    :ensure t
+    :hook (org-mode . org-superstar-mode))
+#+end_src
+** org-mode provides
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
+(provide 'twem2-org)
+#+end_src
+* email module
+I use =mbsync= to fetch email, built-in =smtpmail-send-it= to send mail, and =mu4e= to read mail
+
+** TODO load email config
+My email config is in a separate elisp file - I want to change this so only privacy sensitive pieces are...
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el :mkdirp yes
+(let ((email-el (expand-file-name "email.el"
+				  user-emacs-directory))
+      )
+    (load-file email-el))
+#+end_src
+
+** prettier headers
+I use this package to make the headers view look nicer
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
+  (use-package mu4e-column-faces
+    :ensure t
+    :after mu4e
+    :config (mu4e-column-faces-mode))
+#+end_src
+
+** iCalendar integration
+mu4e has icalendar support if I load it
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
+  (use-package mu4e-icalendar
+    :after mu4e
+    :requires org
+    :config
+    (mu4e-icalendar-setup)
+    (setq gnus-icalendar-org-capture-file "~/org/TODO.org"
+          gnus-icalendar-org-capture-headline '("Calendar"))
+    (gnus-icalendar-org-setup))
+#+end_src
+** provides
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
+(provide 'twem2-email)
 #+end_src
 * ------ below here is not yet brought in ------
 
@@ -376,27 +629,14 @@ I don't see any use of trailing whitespace.
 * Package management
 I did try using =straight= for package management, but I didn't like it, and deciding the builtin =package.el= sufficed 
 
-** Set up package.el
-Add [[https://melpa.org/][MELPA]] to the list of package archives if necessary
 
-#+begin_src emacs-lisp
-  (require 'package)
-  (unless (assoc-default "melpa" package-archives)
-    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
-
-  (package-initialize)
-#+end_src
 
 ** Use-package
 I use =use-package= to manage package configuration and installation in most cases. It is now built in.
 
 #+name: install use-package
 #+begin_src emacs-lisp
-  (require 'use-package)
-  ;; install by default, needs to be turned off for packages not installable by package.el
-  (setq use-package-always-ensure t)
-  ;; Allow installing upgrades of build in packages
-  (setq package-install-upgrade-built-in t)
+
 
   ;; install diminish so use-package can use it
   (use-package diminish
@@ -404,33 +644,8 @@ I use =use-package= to manage package configuration and installation in most cas
 
   (require 'diminish)
 #+end_src
-** auto-package-update
-DISABLED because it has been breaking startup
-#+begin_src emacs-lisp
-  (use-package auto-package-update
-  :disabled t
-    :config
-    (setq auto-package-update-delete-old-versions t)
-    (setq auto-package-update-hide-results t)
-    (auto-package-update-maybe))
-#+end_src
-** elisp directory
-Custom elisp directory in [[file:elisp][~/.emacs.d/elisp]]
-as of [2023-08-09 Wed] this doesn't have anything, so I've disabled it
-Also, =use-package= means I can specify a path for the elisp of a package if necessary
-#+begin_src emacs-lisp
-;(add-to-list 'load-path (expand-file-name "elisp" user-emacs-directory))
-#+end_src
-** vc-use-package
-Install packages from version control using =package-vc-install= in =use-package=
-This functionality is currently in the mainline emacs branch so will be included at some point. I don't know if it will make it into GNU Elpa use-package
-#+begin_src emacs-lisp
-(unless (package-installed-p 'vc-use-package)
-  (package-vc-install "https://github.com/slotThe/vc-use-package"))
-(require 'vc-use-package)
-#+end_src
 
-* Environment specific settings
+
 
 * Miscellaneous key bindings
 Just some key bindings which don't fit elsewhere
@@ -515,14 +730,6 @@ Modes to use variable pitch mode in:
       :hook (org-mode . variable-pitch-mode))
 #+end_src
 
-** spacious-padding
-Provides some UI Spacing which makes for a nicer 
-
-#+begin_src emacs-lisp
-      (use-package spacious-padding
-        :config
-        (spacious-padding-mode))
-#+end_src
 * Document modes
 ** pdf-tools
 Viewing PDFs in emacs. I believe this can also annotate them.
@@ -752,42 +959,14 @@ Also see this video - I could add habit tracking and more [[https://www.youtube.
             (todo "WAITING"
                   ((org-agenda-overriding-header "Tasks on hold")))))))
 #+end_src
+
 **** TODO org-protocol
 
 **** end config
 #+begin_src emacs-lisp
   )
 #+end_src
-** OrgTempo
-Org mode supports templates. Use =C-c C-,= to access them.
-=org-tempo= allows quicker insertion eg. the below configuration will insert an elisp src block when =<el TAB= is pressed
-Built into org, but needs loading
-#+begin_src emacs-lisp
-  (use-package org-tempo
-    :ensure nil
-    :after org
-    :config
-    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp")))
-#+end_src
-** org-protocol
-Setting up on WSL2:  [[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
 
-Template set up above.
-
-#+begin_src emacs-lisp
-  (use-package org-protocol
-    :ensure nil
-    :after org)
-#+end_src
-*** TODO: Can this be integrated with org-web-tools
-https://github.com/alphapapa/org-web-tools
-** org-superstar
-Make org-mode prettier
-https://github.com/integral-dw/org-superstar-mode
-#+begin_src emacs-lisp
-  (use-package org-superstar
-    :hook (org-mode . org-superstar-mode))
-#+end_src
 ** org-webtools
 Download and convert websites into org files or headings.
 I'm going to trial using this alongside denote for capturing reference information
@@ -1540,16 +1719,7 @@ This code from [[https://www.emacswiki.org/emacs/ErcBar]] puts a bar at the last
 - State "DONE"       from "TODO"       [2023-09-08 Fri 11:06]
 - State "TODO"       from              [2023-08-16 Wed 11:28]
 :END:
-My email config is in a separate elisp file.
 
-#+begin_src emacs-lisp
-(let ((email-el (expand-file-name "email.el"
-				  user-emacs-directory))
-      )
-    (load-file email-el))
-#+end_src
-
-I use =mbsync= to fetch email, built-in =smtpmail-send-it= to send mail, and =mu4e= to read mail
 
 ** Sending
 Actual config is in the file loaded above, but this is an example of how it might be configured
@@ -1636,18 +1806,7 @@ I use this package to make the headers view look nicer
     :config (mu4e-column-faces-mode))
 #+end_src
 
-*** iCalendar integration
-#+begin_src emacs-lisp
-  (use-package mu4e-icalendar
-    :ensure nil
-    :demand t
-    :after (mu4e org)
-    :config
-    (mu4e-icalendar-setup)
-    (setq gnus-icalendar-org-capture-file "~/org/TODO.org"
-          gnus-icalendar-org-capture-headline '("Calendar"))
-    (gnus-icalendar-org-setup))
-#+end_src
+
 
 ** TODO Add auto refiling hooks
 :LOGBOOK:
