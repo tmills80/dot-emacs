@@ -85,9 +85,9 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
 #+end_src
 
 
-** Turn off native compilation warnings                       :disabled:
+** Turn off native compilation warnings                    
 Should this be in =init.el=?
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle early-init.el
   (setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
 #+end_src
 
@@ -147,10 +147,10 @@ This is included in the built in =use-package= as of Emacs 30, but is not in the
 (despite having the same version number)
 
 #+begin_src emacs-lisp :tangle init.el
-  (if (version< emacs-version "30")
-      ((unless (package-installed-p 'vc-use-package)
-         (package-vc-install "https://github.com/slotThe/vc-use-package"))
-       (require 'vc-use-package)))
+;  (if (version< emacs-version "30")
+;     (unless (package-installed-p 'vc-use-package)
+;	 (package-vc-install "https://github.com/slotThe/vc-use-package"))
+;       (require 'vc-use-package))
 #+end_src
 ** Package pinning
 Packages to pin to particular sources
@@ -159,6 +159,11 @@ This doesn't actually appear to work for ~built-in~ but I want to document that 
   ;; Pinning to "built-in" doesn't seem to work, but I want to document the requirement
   (setq package-pinned-packages
         '((use-package . "built-in")))
+#+end_src
+** install diminish for use with use-package
+#+begin_src emacs-lisp :tangle init.el
+        (use-package diminish
+          :ensure t)
 #+end_src
 ** TODO all those basic settings
 ** Add module and personal lisp sources to the load path
@@ -173,31 +178,144 @@ In both cases the files should provide a package which is loaded below
    (add-to-list 'load-path (locate-user-emacs-file string)))
  '("twem2-lisp" "twem2-config-modules"))
 #+end_src
+** Load personal lisp packages
+#+begin_src emacs-lisp :tangle init.el
+  (require 'twem2-org-latex)
+#+end_src
 ** Load modules
 Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
+  (require 'twem2-essentials)
   (require 'twem2-wsl2)
   (require 'twem2-theme)
   (require 'twem2-org)
-  (require 'twem2-email)
+  (when (eq system-type 'gnu/linux)
+    (require 'twem2-email))
+  (require 'twem2-completion)
+  (require 'twem2-denote)
+  (require 'twem2-window)
+  (require 'twem2-bookmarks)
+  (require 'twem2-dired)
+  (require 'twem2-treesitter)
+  (require 'twem2-latex)
+  ; (require 'twem2-web-dev)
+  (require 'twem2-eglot)
+  (require 'twem2-vc)
+  (require 'twem2-markdown)
+  (require 'twem2-icons)
+  (require 'twem2-python)
+  (require 'twem2-pdf)
+  (require 'twem2-trial)
+#+end_src
+* Essential configuration
+Things which are currently essential and will always be loaded
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
+  (use-package emacs
+    :diminish auto-revert-mode
+#+end_src
+** Bindings
+Rebind =M-i= to =imenu=
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+     :bind (("M-i" . imenu)
+            )
+#+end_src
+** emacs customization
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  :custom
+#+end_src
+*** visible-bell
+Use visible bell rather than making a noise (could turn off completely?)
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (visible-bell t)
+#+end_src
+*** use tab for completion and indentationn
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+(tab-always-indent 'complete)
+#+end_src
+*** highlight the current error
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+(next-error-message-highlight t)
+#+end_src
+** emacs variables and other config
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+:config
+#+end_src
+*** Turn off backups & lock files
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (setq make-backup-files nil)
+  (setq create-lockfiles nil)
+#+end_src
+*** Make ~compile-mode~ use ANSI colours
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+(add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+#+end_src
+** end of use-package
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+)
+#+end_src
+** set a dictionary for =ispell-lookup-words= to use
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (when (eq system-type 'gnu/linux)
+    (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
+#+end_src
+** which-key
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (use-package which-key
+    :ensure t
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0.3)
+    (setq which-key-popup-type 'minibuffer)
+    (which-key-mode))
+#+end_src
+** TODO helpful
+Provides better =*help*= buffer with colours, references, source code and more
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (use-package helpful
+    :ensure t
+    :bind (([remap describe-function] . helpful-callable)
+           ([remap describe-key] . helpful-key)
+           ([remap describe-variable] . helpful-variable)
+           ([remap describe-command] . helpful-command)
+           ("C-c C-d" . helpful-at-point)))
+#+end_src
+** flymake customization
+Emacs's built in error checker. Eglot will use it to highlight errors
+
+I've added soeme useful key-bindings to navigate errors quicker (also useful is =consult-flymake= bound to =M-g f=)
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (use-package flymake
+    :ensure t
+    :bind (:map flymake-mode-map
+                ("M-p" . flymake-goto-prev-error)
+                ("M-n" . flymake-goto-next-error)))
+#+end_src
+** provide essentials
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+(provide 'twem2-essentials)
 #+end_src
 * WSL2 configuration
 ** Use the windows browser
 There are still some issues
  - =M-w= doesn't always copy to the Windows clipboard.
  - Some links don't open properly from =mu4e= so need to be copied
-   
+
+ [2024-04-11 Thu] WSLENV is not being set in tmux, so I've added checks for the WSLInterop files, one of which /should/ exist
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-wsl2.el :mkdirp yes
   (when (and (eq system-type 'gnu/linux)
-	     (getenv "WSLENV"))
+  	     (or ;(getenv "WSLENV")
+  		 (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop")
+  		 (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop-late")))
     ;; Make emacs use default Windows browser
     (let ((cmd-exe "/mnt/c/Windows/System32/cmd.exe")
-	  (cmd-args '("/c" "start")))
+  	  (cmd-args '("/c" "start")))
       (when (file-exists-p cmd-exe)
-	(setq browse-url-generic-program cmd-exe
-	      browse-url-generic-args cmd-args
-	      browse-url-browser-function 'browse-url-generic
-	      search-web-default-browser 'browse-url-generic))))
+  	(setq browse-url-generic-program cmd-exe
+  	      browse-url-generic-args cmd-args
+  	      browse-url-browser-function 'browse-url-generic
+  	      search-web-default-browser 'browse-url-generic))))
 #+end_src
 ** Provide the WSL2 module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-wsl2.el
@@ -228,42 +346,68 @@ Bind =<f5>= to the toggle function
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
 (define-key global-map (kbd "<f5>") #'ef-themes-toggle)
 #+end_src
-** TODO Font size settings
-I should look into  <https://protesilaos.com/emacs/fontaine> - it looks like this it does this even better
-
-This sets the font size depending on the screen size
-Cribbed from somewhere on the Internet
+** fontaine settings
+Another prot project:  <https://protesilaos.com/emacs/fontaine>
 
 For fixed width I use ~Fira Code Retina~
 For variable width I use ~ETBembo~ font which needs installing from https://edwardtufte.github.io/et-book/
 
-#+name: fontify frame
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el 
-  (defun fontify-frame (frame)
-    "Change the font size based on screen size"
-    (interactive "i")
-    (if window-system
-        (progn
-          (cond ((> (x-display-pixel-width) 2000)
-                 (set-face-attribute 'default nil :font "Fira Code Retina" :height 180)
-                 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 180)
-                 (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 200))
-                ((> (x-display-pixel-width) 1600)
-                 (set-face-attribute 'default nil :font "Fira Code Retina" :height 120)
-                 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 120)
-                 (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 140))
-                (t (set-face-attribute 'default nil :font "Fira Code Retina" :height 100)
-                   (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 100)
-                   (set-face-attribute 'variable-pitch nil :font "ETBembo" :height 120))))))
+This allows me to switch font settings easily.
 
-  ;; Fontify current frame
-  (fontify-frame nil)
+I have an issue with org-mode currently - it uses the same font size for fixed-pitch as variable-pitch which means fixed-pitch is bigger
 
-  ;; ;; Fontify any future frames
-  (push 'fontify-frame after-make-frame-functions)
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
+  (use-package fontaine
+    :ensure t
+    :pin "gnu-elpa-devel"
+    :bind ("C-c f" . fontaine-set-preset)
+    :config
+    (setq fontaine-presets
+          '((small
+             :default-family "Fira Code Retina"
+             :default-height 100
+             :fixed-pitch-family "Fira Code Retina"
+             :fixed-pitch-height 1.0
+             :variable-pitch-family "ETBembo"
+             :variable-pitch-height 1.1
+             :line-spacing 1
+             )
+            (regular
+             :inherit small
+             :default-height 120)
+            
+            (large
+             :inherit small
+             :default-height 150
+             )))
+    (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))
+    (add-hook 'kill-emacs-hook #'fontaine-store-latest-preset)
+    (add-hook 'fontaine-set-preset-hook #'fontaine-store-latest-preset)
+    ;; Change the scale of latex previews when changing the preset
+    (add-hook 'fontaine-set-preset-hook
+  	    (lambda ()
+  		   (setq org-format-latex-options
+  			 (plist-put org-format-latex-options
+  				    :scale
+  				    (/
+  				     (fontaine--get-preset-property fontaine-current-preset :default-height)
+  				     100.0))))))
+#+end_src
+** variable pitch mode
+I want variable pitch in modes where I am focussed on prose
+I do wish info mode had better handling of 
 
-  ;; ;; Bind fontify-frame to F12
-  (global-set-key (kbd "<f12>") 'fontify-frame)
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
+  (use-package variable-pitch
+    :hook (text-mode . variable-pitch-mode))
+#+end_src
+** resize text across all buffers
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
+  (use-package emacs
+    :bind (("C-x C-=" . global-text-scale-adjust)
+           ("C-x C-+" . global-text-scale-adjust)
+           ("C-x C-0" . global-text-scale-adjust)
+           ("C-x C--" . global-text-scale-adjust)))
 #+end_src
 ** spacious-padding
 Provides some UI Spacing which makes for a nicer experience
@@ -275,7 +419,37 @@ Provides some UI Spacing which makes for a nicer experience
     :config
     (spacious-padding-mode))
 #+end_src
-
+** lin to hightlight lines
+[[https://protesilaos.com/emacs/lin][=lin]]= is a package from [[https://protesilaos.com/emacs/][=prot=]] which modifies =hl-line-mode= faces for the modes in =lin-mode-hooks=
+The default list of modes is good for now
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
+  (use-package lin
+    :ensure t
+    :config
+    (setq lin-mode-hooks
+          '(bongo-mode-hook
+             dired-mode-hook
+             elfeed-search-mode-hook
+             git-rebase-mode-hook
+             grep-mode-hook
+             ibuffer-mode-hook
+             ilist-mode-hook
+             ledger-report-mode-hook
+             log-view-mode-hook
+             magit-log-mode-hook
+             mu4e-headers-mode
+             notmuch-search-mode-hook
+             notmuch-tree-mode-hook
+             occur-mode-hook
+             org-agenda-mode-hook
+             pdf-outline-buffer-mode-hook
+             proced-mode-hook
+             tabulated-list-mode-hook
+             ;; my additions
+             ement-room-mode-hook
+             ement-room-list-mode-hook))
+    (lin-global-mode 1))
+#+end_src
 ** Provide the theme module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
 (provide 'twem2-theme)
@@ -296,9 +470,20 @@ Some of the =:config= section is customizable, so should probably be in =:custom
     :ensure t
     :bind (("C-c l" . org-store-link)
            ("C-c a" . org-agenda)
-           ("C-c c" . org-capture))
+           ("C-c c" . org-capture)
+  	 :map org-mode-map
+  	 ("C-c i" . twem2-org-latex-insert-brackets))
+    :diminish org-indent-mode
     :custom
     (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
+    ;; make font bigger in latex preview
+    (org-format-latex-options '(:scale 1.0))
+    ;; Add packages to LaTeX fragments
+    (org-latex-packages-alist'(("" "multirow" t nil)))
+    ;; use dvisvgm to generate fragments - it works better
+    (org-preview-latex-default-process 'dvisvgm)
+    ;; load shell babel
+    (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
     :config
     ;; Logging
     (setq org-log-into-drawer t
@@ -408,10 +593,13 @@ Built into org, but needs loading
     (dolist
         (template
          '(("el" . "src emacs-lisp")
-           ("elm" . "src emacs-lisp :tangle twem2-config-modules/")))
+           ("elm" . "src emacs-lisp :tangle twem2-config-modules/")
+           ("py" . "src python :results output")
+           ("pyg" . "src python :results graphics file output :file {}")))
       (add-to-list 'org-structure-template-alist template)))
 #+end_src
-** Setting up on WSL2:  [[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
+** Setting up on WSL2:
+[[https://www.reddit.com/r/emacs/comments/i0f92n/wsl2_orgprotocol/]]
 
 Template set up above.
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
@@ -421,10 +609,18 @@ Template set up above.
 ** org-superstar
 Make org-mode prettier
 https://github.com/integral-dw/org-superstar-mode
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
   (use-package org-superstar
     :ensure t
     :hook (org-mode . org-superstar-mode))
+#+end_src
+** org-fragtog
+Automatically toggle latex fragments as I enter and leave them
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
+  (use-package org-fragtog
+    :requires (org auctex)
+    :ensure t
+    :hook (org-mode . org-fragtog-mode))
 #+end_src
 ** org-mode provides
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
@@ -465,12 +661,733 @@ mu4e has icalendar support if I load it
           gnus-icalendar-org-capture-headline '("Calendar"))
     (gnus-icalendar-org-setup))
 #+end_src
+
+** Temporary fix for using mu4e with activities.el
+see https://github.com/alphapapa/activities.el/issues/55
+https://github.com/djcb/mu/pull/2672/ fixes - should be in next release
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
+(define-advice mu4e--view-render-buffer (:after (&rest _) unset-bookmark-make-record-function)
+  (kill-local-variable 'bookmark-make-record-function))
+#+end_src
 ** provides
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
 (provide 'twem2-email)
 #+end_src
-* ------ below here is not yet brought in ------
+* TODO completion module
+** TODO consult
+This needs lots of work and documenting...
+uses the built-in [[help:completing-read][completing-read]] function to suggest completions. Particularly useful is [[help:consult-buffer][consult-buffer]]
+[[https://github.com/minad/consult]]
 
+This is just the config from the README as I get used to it.
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el :mkdirp yes
+    ;; Example configuration for Consult
+    (use-package consult
+      :ensure t
+      :demand t
+
+      ;; Replace bindings. Lazily loaded due by `use-package'.
+      :bind (;; C-c bindings (mode-specific-map)
+             ("C-c h" . consult-history)
+             ("C-c m" . consult-mode-command)
+             ("C-c k" . consult-kmacro)
+             ;; C-x bindings (ctl-x-map)
+             ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+             ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+             ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+             ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+             ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+             ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+             ;; Custom M-# bindings for fast register access
+             ("M-#" . consult-register-load)
+             ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+             ("C-M-#" . consult-register)
+             ;; Other custom bindings
+             ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+             ;; M-g bindings (goto-map)
+             ("M-g e" . consult-compile-error)
+             ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+             ("M-g g" . consult-goto-line)             ;; orig. goto-line
+             ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+             ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+             ("M-g m" . consult-mark)
+             ("M-g k" . consult-global-mark)
+             ("M-g i" . consult-imenu)
+             ("M-i" . consult-imenu) ;; my own preferred binding for imenu
+             ("M-g I" . consult-imenu-multi)
+             ;; M-s bindings (search-map)
+             ("M-s d" . consult-find)
+             ("M-s D" . consult-locate)
+             ("M-s g" . consult-grep)
+             ("M-s G" . consult-git-grep)
+             ("M-s r" . consult-ripgrep)
+             ("M-s l" . consult-line)
+             ("M-s L" . consult-line-multi)
+             ("M-s m" . consult-multi-occur)
+             ("M-s k" . consult-keep-lines)
+             ("M-s u" . consult-focus-lines)
+             ;; Isearch integration
+             ("M-s e" . consult-isearch-history)
+             :map isearch-mode-map
+             ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+             ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+             ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+             ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+             ;; Minibuffer history
+             :map minibuffer-local-map
+             ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+             ("M-r" . consult-history)                ;; orig. previous-matching-history-element
+             :map org-mode-map
+             ("M-i" . consult-org-heading))
+
+
+      ;; Enable automatic preview at point in the *Completions* buffer. This is
+      ;; relevant when you use the default completion UI.
+      :hook (completion-list-mode . consult-preview-at-point-mode)
+
+      ;; The :init configuration is always executed (Not lazy)
+      :init
+
+      ;; Optionally configure the register formatting. This improves the register
+      ;; preview for `consult-register', `consult-register-load',
+      ;; `consult-register-store' and the Emacs built-ins.
+      (setq register-preview-delay 0.5
+            register-preview-function #'consult-register-format)
+
+      ;; Optionally tweak the register preview window.
+      ;; This adds thin lines, sorting and hides the mode line of the window.
+      (advice-add #'register-preview :override #'consult-register-window)
+
+      ;; Use Consult to select xref locations with preview
+      (setq xref-show-xrefs-function #'consult-xref
+            xref-show-definitions-function #'consult-xref)
+
+      ;; Configure other variables and modes in the :config section,
+      ;; after lazily loading the package.
+      :config
+
+      ;; Optionally configure preview. The default value
+      ;; is 'any, such that any key triggers the preview.
+      ;; (setq consult-preview-key 'any)
+      ;; (setq consult-preview-key "M-.")
+      ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+      ;; For some commands and buffer sources it is useful to configure the
+      ;; :preview-key on a per-command basis using the `consult-customize' macro.
+      (consult-customize
+       consult-theme :preview-key '(:debounce 0.2 any)
+       consult-ripgrep consult-git-grep consult-grep
+       consult-bookmark consult-recent-file consult-xref
+       consult--source-bookmark consult--source-file-register
+       consult--source-recent-file consult--source-project-recent-file
+       ;; :preview-key "M-."
+       :preview-key '(:debounce 0.4 any))
+
+      ;; Optionally configure the narrowing key.
+      ;; Both < and C-+ work reasonably well.
+      (setq consult-narrow-key "<") ;; (kbd "C-+")
+
+      ;; Optionally make narrowing help available in the minibuffer.
+      ;; You may want to use `embark-prefix-help-command' or which-key instead.
+      ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+
+      ;; By default `consult-project-function' uses `project-root' from project.el.
+      ;; Optionally configure a different project root function.
+      ;; There are multiple reasonable alternatives to chose from.
+      ;;;; 1. project.el (the default)
+  ;;    (setq consult-project-function #'consult--default-project--function)
+      ;;;; 2. projectile.el (projectile-project-root)
+
+      ;; (autoload 'projectile-project-root "projectile")
+
+      ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
+      ;;;; 3. vc.el (vc-root-dir)
+      ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
+      ;;;; 4. locate-dominating-file
+      ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+    )
+#+end_src
+
+** orderless
+A custom completion style, like helm's style [[https://github.com/oantolin/orderless]]
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+
+** TODO vertico
+vertical completion, tying into emacs's default completion
+[[https://github.com/minad/vertico]]
+some ideas [[https://kristofferbalintona.me/posts/202202211546/#vertico]]
+and [[https://github.com/skyler544/rune-emacs-config/blob/main/modules/movec.el]]
+
+More config?
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+  (use-package vertico
+    :ensure t
+    :config
+    (vertico-mode))
+#+end_src
+
+
+**  marginalia
+extra information for minibuffer completions
+[[https://github.com/minad/marginalia]]
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+  ;; Enable richer annotations using the Marginalia package
+  (use-package marginalia
+    :ensure t
+    ;; Either bind `marginalia-cycle` globally or only in the minibuffer
+    :bind (;("M-A" . marginalia-cycle)
+           :map minibuffer-local-map
+           ("M-A" . marginalia-cycle))
+
+    ;; The :init configuration is always executed (Not lazy!)
+    :init
+    ;; Must be in the :init section of use-package such that the mode gets
+    ;; enabled right away. Note that this forces loading the package.
+    (marginalia-mode))
+#+end_src
+
+
+** TODO cape
+https://github.com/minad/cape
+more finessing needed
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+  (use-package cape
+    :ensure t
+    ;; Bind dedicated completion commands
+    ;; Alternative prefix keys: C-c p, M-p, M-+, ...
+    :bind (("C-c p p" . completion-at-point) ;; capf
+           ("C-c p t" . complete-tag)        ;; etags
+           ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+           ("C-c p h" . cape-history)
+           ("C-c p f" . cape-file)
+           ("C-c p k" . cape-keyword)
+           ("C-c p s" . cape-elisp-symbol)
+           ("C-c p e" . cape-elisp-block)
+           ("C-c p a" . cape-abbrev)
+           ("C-c p l" . cape-line)
+           ("C-c p w" . cape-dict)
+           ("C-c p :" . cape-emoji)
+           ("C-c p \\" . cape-tex)
+           ("C-c p _" . cape-tex)
+           ("C-c p ^" . cape-tex)
+           ("C-c p &" . cape-sgml)
+           ("C-c p r" . cape-rfc1345))
+    :init
+    ;; Add to the global default value of `completion-at-point-functions' which is
+    ;; used by `completion-at-point'.  The order of the functions matters, the
+    ;; first function returning a result wins.  Note that the list of buffer-local
+    ;; completion functions takes precedence over the global list.
+    ;(add-to-list 'completion-at-point-functions #'cape-dabbrev)
+    ;(add-to-list 'completion-at-point-fuctions #'cape-file)
+    ;(add-to-list 'completion-at-point-functions #'cape-elisp-block)
+    ;;(add-to-list 'completion-at-point-functions #'cape-history)
+    ;;(add-to-list 'completion-at-point-functions #'cape-keyword)
+    ;;(add-to-list 'completion-at-point-functions #'cape-tex)
+    ;;(add-to-list 'completion-at-point-functions #'cape-sgml)
+    ;;(add-to-list 'completion-at-point-functions #'cape-rfc1345)
+    ;;(add-to-list 'completion-at-point-functions #'cape-abbrev)
+    ;;(add-to-list 'completion-at-point-functions #'cape-dict)
+    ;;(add-to-list 'completion-at-point-functions #'cape-elisp-symbol)
+    ;;(add-to-list 'completion-at-point-functions #'cape-line)
+  )
+#+end_src
+** TODO corfu
+Needs tweaking so it doesn't take so long in eglot
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+  (use-package corfu
+    :ensure t
+    :init
+    (global-corfu-mode)
+    :custom
+    (corfu-separator ?\s)
+    ;(corfu-preselect 'prompt)
+    :bind
+    (:map corfu-map ("M-SPC" . corfu-insert-separator))
+    :config
+    (setq corfu-auto t
+          corfu-auto-delay 0.2
+          corfu-auto-prefix 3)
+    )
+
+  ;; Use Dabbrev with Corfu - move out of here
+  (use-package dabbrev
+    ;; Swap M-/ and C-M-/
+    :bind (("M-/" . dabbrev-completion)
+           ("C-M-/" . dabbrev-expand))
+    ;; Other useful Dabbrev configurations.
+    :custom
+      (add-to-list 'dabbrev-ignored-buffer-regexps "\\` ")
+      ;; Since 29.1, use `dabbrev-ignored-buffer-regexps' on older.
+      (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+      (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode))
+#+end_src
+** TODO tempel
+https://github.com/minad/tempel
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+  (use-package tempel
+    :ensure t
+    :after cape
+    :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
+           ("M-*" . tempel-insert)
+           :map tempel-map
+           ("M-p" . tempel-previous)
+           ("M-n" . tempel-next))
+
+    :init
+
+    ;; Setup completion at point
+    (defun tempel-setup-capf ()
+      ;; Add the Tempel Capf to `completion-at-point-functions'.
+      ;; `tempel-expand' only triggers on exact matches. Alternatively use
+      ;; `tempel-complete' if you want to see all matches, but then you
+      ;; should also configure `tempel-trigger-prefix', such that Tempel
+      ;; does not trigger too often when you don't expect it. NOTE: We add
+      ;; `tempel-expand' *before* the main programming mode Capf, such
+      ;; that it will be tried first.
+      (setq-local completion-at-point-functions
+                  (cons #'tempel-expand
+                        completion-at-point-functions)))
+
+    (add-hook 'conf-mode-hook 'tempel-setup-capf)
+    (add-hook 'prog-mode-hook 'tempel-setup-capf)
+    (add-hook 'text-mode-hook 'tempel-setup-capf)
+
+    ;; Optionally make the Tempel templates available to Abbrev,
+    ;; either locally or globally. `expand-abbrev' is bound to C-x '.
+    ;; (add-hook 'prog-mode-hook #'tempel-abbrev-mode)
+    ;; (global-tempel-abbrev-mode)
+  )
+
+  ;; Optional: Add tempel-collection.
+  ;; The package is young and doesn't have comprehensive coverage.
+  (use-package tempel-collection
+    :ensure t)
+#+end_src
+** provide completion
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
+(provide 'twem2-completion)
+#+end_src
+
+* denote module
+** install and configure denote
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el :mkdirp yes
+  (use-package denote
+    :ensure t
+    :bind
+    (
+     ;; Note creation
+     ("C-c n n" . denote)
+     ("C-c n N" . denote-type)
+     ("C-c n s" . denote-subdirectory)
+     ;; links
+     ("C-c n i" . denote-link) ;; mnemonic 'insert'
+     ("C-c n I" . denote-add-links)
+     ("C-c n b"  . denote-backlinks)
+     ("C-c n l f" . denote-find-link)
+     ("C-c n l b" . denote-find-backlink)
+     ;; renaming - can happen anywhere so files can be renamed in denote syntax
+     ("C-c n r" . denote-rename-file)
+     ("C-c n R" . denote-rename-file-using-front-matter)
+     :map dired-mode-map
+     ("C-c C-d C-i" . denote-link-dired-marked-notes)
+     ("C-c C-d C-r" . denote-dired-rename-marked-files)
+     ("C-c C-d C-R" . denote-dired-rename-marked-files-using-front-matter))
+    :hook
+    ((dired-mode . denote-dired-mode))
+    :config
+    (setq denote-directory (expand-file-name "~/org/notes"))
+    (setq denote-known-keywords '("emacs" "radio" "music" "ml" "maths"))
+    (setq denote-infer-keywords t)
+    (setq denote-sort-keywords t)
+    (setq denote-file-type nil)           ; Default: Org
+    (setq denote-prompts '(subdirectory title keywords))
+    (setq denote-allow-multi-word-keywords t)
+    ;; use consult ripgrep to search denote notes
+    (if (fboundp 'consult-ripgrep)
+        (defun consult-denote-ripgrep ()
+          "Search with 'rg' for files in the denote-directory"
+          (interactive)
+          (consult-ripgrep denote-directory ""))))
+#+end_src
+
+** consult-notes for denote
+Use consult to select notes
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el
+  (use-package consult-notes
+    :ensure t
+    :after (denote consult)
+    :commands (consult-notes
+               const-notes-search-in-all-notes)
+    :bind (("C-c n f" . consult-notes))
+    :config
+    (setq consult-notes-file-dir-sources
+          `(("Denote Notes" ?d ,(denote-directory))
+            ("Music Notes" ?m ,(concat (denote-directory) "music/"))
+  	  ("ML Course Notes" ?c ,(concat (denote-directory) "ml/"))))
+    (consult-notes-denote-mode 't))
+#+end_src
+
+** provide denote
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el
+(provide 'twem2-denote)
+#+end_src
+* TODO window systems module
+Configuration about window management and configuration within Emacs
+** ace-window
+=ace-window= makes navigating windows easier
+When called it either calls =other-window= if there are only two windows (ie default =C-x o= behaviour)
+If there's more than one (including minibuffer) then it puts a character in the top left of each window. To select a window, press it's character.
+
+I bind it to =M-o=
+
+Setting =aw-keys= changes what keys are used in selecting the window. I've set it to the home row (default is numbers)
+
+To swap windows use the prefix argument =C-u=
+To delete the window use the prefix argument =C-u C-u=
+
+There's more functionality other than jumping, but I haven't needed it yet. Press =?= instead of selsecting a window for a summary.g
+
+[[https://github.com/abo-abo/ace-window]]
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el :mkdirp yes
+(use-package ace-window
+  :ensure t
+  :bind (("M-o" . ace-window))
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+#+end_src
+** Uniquify format
+If buffers have similar names, use a more useful way to distinguish them
+[[info:emacs#Uniquify][emacs#Uniquify]]
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el
+(setq uniquify-buffer-name-style 'forward)
+#+end_src
+** Provide twem2-window
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el
+(provide 'twem2-window);
+#+end_src
+* bookmarks module
+Anything pertaining to bookmarks and registers
+** Bookmarks+
+https://www.emacswiki.org/emacs/BookmarkPlus
+
+The github mirror seems to be kept up to date, so this will do for fetching.
+
+This is a PITA because ~use-package~ is a macro it tries to always expand - I will need to look deeper into this, or use conditional exporting
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-bookmarks.el :mkdirp yes
+  (if (version< emacs-version "30")
+   ;   (use-package bookmark+
+    ;     :ensure t
+     ;    :vc (:fetcher github :repo emacsmirror/bookmark-plus.git))
+      (message "Not loaded bookmark+ - see emacs.org")
+    (use-package bookmark+
+       :ensure
+       :vc (:url "https://github.com/emacsmirror/bookmark-plus.git"
+            :rev :newest)))
+#+end_src
+** Provide twem2-bookmarks
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-bookmarks.el
+(provide 'twem2-bookmarks)
+#+end_src
+* dired module
+** general settings
+From Prot: [ Watch: <https://protesilaos.com/codelog/2023-06-26-emacs-file-dired-basics/> (2023-06-26) ]
+
+A lot of this is taken from Prot's config: https://protesilaos.com/emacs/dotemacs#h:f8b08a77-f3a8-42fa-b1a9-f940348889c3
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-dired.el :mkdirp yes
+  (use-package dired
+    :config
+    (setq dired-recursive-copies 'always)
+    (setq dired-recursive-deletes 'always)
+    (setq delete-by-moving-to-trash t)
+    (setq dired-auto-revert-buffer #'dired-directory-changed-p)
+    :hook ((dired-mode . dired-hide-details-mode)
+           (dired-mode . hl-line-mode)))
+#+end_src
+** provide twem2-dired
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-dired.el
+(provide 'twem2-dired)
+#+end_src
+* treesitter module
+Treesitter transforms source code to a concrete syntax tree, resulting in better syntax highlighting and code navigation ability.
+To use it for a language you need to install a library for that language with =treesit-install-language-grammer= and use the ~-ts-~ version of the major mode.
+
+** enable and configure treesitter
+This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el :mkdirp yes
+  (use-package emacs
+    :if (treesit-available-p)
+    :config
+    ;; Some default grammar definition sources
+    (setq treesit-language-source-alist
+     '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+       (cmake "https://github.com/uyha/tree-sitter-cmake")
+       (css "https://github.com/tree-sitter/tree-sitter-css")
+       (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+       (go "https://github.com/tree-sitter/tree-sitter-go")
+       (html "https://github.com/tree-sitter/tree-sitter-html")
+       (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+       (json "https://github.com/tree-sitter/tree-sitter-json")
+       (make "https://github.com/alemuller/tree-sitter-make")
+       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+       (python "https://github.com/tree-sitter/tree-sitter-python")
+       (toml "https://github.com/tree-sitter/tree-sitter-toml")
+       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+       (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+    ;; Remap some of the modes
+    (setq major-mode-remap-alist
+          '((yaml-mode . yaml-ts-mode)
+            (bash-mode . bash-ts-mode)
+            (js-mode . js-ts-mode)
+            (typescript-mode . typescript-ts-mode)
+            (json-mode . json-ts-mode)
+            (css-mode . css-ts-mode)
+            (python-mode . python-ts-mode)
+            (go-mode . go-ts-mode))))
+#+end_src
+
+** TODO combobulate
+https://www.masteringemacs.org/article/combobulate-intuitive-structured-navigation-treesitter
+** provide twem2-treesitter
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el
+  (provide 'twem2-treesitter)
+#+end_src
+         
+* TODO eglot module
+Currently I just use eglot as is - I will need to do some configuration at some point. Particularly key bindings, auto starting and
+some corfu customization (see https://github.com/minad/corfu/wiki)
+** Configure eglot
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
+  (use-package eglot
+    :ensure t
+    :bind (:map eglot-mode-map
+                ("C-<return>" . eglot-code-actions))
+    :hook ((python-ts-mode python-mode) . eglot-ensure))
+#+end_src
+
+** override completion style
+https://github.com/minad/corfu/wiki
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
+(setq completion-category-overrides '((eglot (styles orderless))
+                                      (eglot-capf (styles orderless))))
+#+end_src
+** Add my own Cape Super Capf for eglot
+See https://github.com/minad/corfu/wiki
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el
+(defun my/eglot-capf ()
+  (setq-local completion-at-point-functions
+              (list (cape-capf-super
+                     #'eglot-completion-at-point
+                     #'tempel-expand
+                     #'cape-file))))
+
+(add-hook 'eglot-managed-mode-hook #'my/eglot-capf)
+#+end_src
+** Use tempel not yasnippet for completion
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el
+  (use-package eglot-tempel
+    :ensure t
+    :after (eglot tempel))
+#+end_src
+** Python
+I'm using ~python-lsp-server~ https://github.com/python-lsp/python-lsp-server
+I've found that the ~YAPF~ code formatter doesn't work very well - it indents to  =tab-width= which may not be what you want
+the ~autopep8~ formatter works as expected. I've not tried ~python-lsp-black~ https://github.com/python-lsp/python-lsp-black
+** provide twem2-eglot
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el
+  (provide 'twem2-eglot)
+#+end_src
+
+* latex module
+$\LaTeX$ typesetting (used mainly for mathematical symbols/formulae)
+** AUCTeX
+Recommended package for editing $\LaTeX$
+Required for CDLaTeX
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-latex.el :mkdirp yes
+  (use-package tex
+    :ensure auctex
+    :config
+    (setq TeX-auto-save t
+          TeX-parse-self t))
+#+end_src
+** CDLaTeX
+Package for inserting $\LaTeX$ quickly. Usable in =org-mode=, =LaTeX-mode=, and =latex-mode=
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-latex.el
+  (use-package cdlatex
+    :ensure t
+    :hook (org-mode . turn-on-org-cdlatex))
+#+end_src
+** provide twem-latex
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-latex.el
+(provide 'twem2-latex)
+#+end_src
+* web development module
+** web-mode
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-web-dev.el :mkdirp yes
+  (use-package web-mode
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.jsx?$" . web-mode)) ;; auto-enable for .js/.jsx files
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode)) ;; auto-enable for .html files
+    ;; enable JSX syntax hilighting for .js/.jsx files
+    (setq web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+#+end_src
+** provice twem2-web-dev
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-web-dev.el
+  (provide 'twem2-web-dev)
+#+end_src
+* NEXT  terminal emulation module
+#+begin_src emacs-lisp
+  (use-package eat
+    :ensure t)
+#+end_src
+* version control module
+** magit
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
+(use-package magit
+  :ensure t)
+#+end_src
+** provide twem-vc
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el
+(provide 'twem2-vc)
+#+end_src
+* markdown mode module
+** Install markdown mode
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-markdown.el
+  (use-package markdown-mode
+    :ensure t
+    :mode ("README\\.md\\'" . gfm-mode)
+    :init (setq markdown-command "pandoc"))
+#+end_src
+** provide
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-markdown.el
+(provide 'twem2-markdown)
+#+end_src
+* icons module
+nerd-fonts have lots of useful icons (more than all-the-icons)
+
+Fonts need to be installed - =nerd-icons-install-fonts= will try and do this
+On Windows, the font will still have to be installed manually
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-icons.el
+  (use-package nerd-icons
+    :ensure t)
+
+  (use-package nerd-icons-completion
+    :ensure t
+    :config
+    (nerd-icons-completion-marginalia-setup)
+    (nerd-icons-completion-mode 1))
+
+  (use-package nerd-icons-corfu
+    :ensure t
+    :config
+    (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
+
+  (use-package nerd-icons-dired
+    :ensure t
+    :hook
+    (dired-mode . nerd-icons-dired-mode))
+
+  (provide 'twem2-icons)
+#+end_src
+* TODO python module
+TODO: make ~pyenv-mode~ only active when ~python-mode~ or ~org-mode~ active
+TODO: org-babel config
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-python.el
+  (use-package pyvenv
+    :ensure t
+    :config
+    (pyvenv-mode t))
+
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   (add-to-list 'org-babel-load-languages '(python . t)))
+
+
+  (provide 'twem2-python)
+#+end_src
+* PDF module
+** pdf-tools
+Viewing PDFs in emacs. I believe this can also annotate them.
+https://github.com/vedang/pdf-tools#about-pdf-tools
+
+It requires the epdfinfo server to be installed. This is handled automatically on Linux (including WSL), but may not on other platforms.
+If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]] manually
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-pdf.el
+  (use-package pdf-tools
+    :ensure t
+    :if (eq system-type 'gnu/linux)
+    :config
+    (pdf-tools-install))
+
+  (provide 'twem2-pdf)
+#+end_src
+
+* testing module
+Anything I'm trying out
+** TODO Casual mode - calc porcelain
+This really helps with using calc
+TODO: Promote package
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package casual
+    :ensure t
+    :config
+    (define-key calc-mode-map (kbd "C-o") 'casual-main-menu))
+#+end_src
+** TODO activities
+:LOGBOOK:
+- State "TODO"       from              [2024-04-26 Fri 14:02]
+:END:
+ save 'activities'
+ Very useful when moving between computers forwarding emacs over ssh/X
+ Promote?
+ #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+   (use-package activities
+     :ensure t
+    :init
+    (activities-mode)
+    (activities-tabs-mode)
+    ;; Prevent `edebug' default bindings from interfering.
+    (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+
+    :bind
+    (("C-x C-a C-n" . activities-new)
+     ("C-x C-a C-d" . activities-define)
+     ("C-x C-a C-a" . activities-resume)
+     ("C-x C-a C-s" . activities-suspend)
+     ("C-x C-a C-k" . activities-kill)
+     ("C-x C-a RET" . activities-switch)
+     ("C-x C-a b" . activities-switch-buffer)
+     ("C-x C-a g" . activities-revert)
+     ("C-x C-a l" . activities-list)))
+   #+end_src
+** TODO projection
+Try out projection: https://github.com/mohkale/projection
+** TODO configure project.el
+[[help:project-vc-extra-root-markers]]
+** provide
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+(provide 'twem2-trial)
+#+end_src
+* ------ below here is not yet brought in ------
+* TODO things to try out
+** TODO embark
+eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
+** TODO more consult
+- consult-dir
+** TODO  
 * 29.1 bugfix for tramp 2.6.1.1.1                                  :disabled:
 Fix from notes about GNU ELPA version
 #+begin_src emacs-lisp
@@ -522,13 +1439,7 @@ Show column in the modeline
 ** Better defaults
 [[https://git.sr.ht/~technomancy/better-defaults][Better Defaults]] provides quite a few changes to Emacs's defaults, these are all taken from there
 
-*** uniquify format
-The default is not very useful, this will give more details
-#+name: uniquify
-#+begin_src emacs-lisp
-  (require 'uniquify)
-  (setq uniquify-buffer-name-style 'forward)
-#+end_src
+
 
 *** save-place-mode
 See [[https://www.emacswiki.org/emacs/SavePlace][https://www.emacswiki.org/emacs/SavePlace]] - this will save your place in a buffer
@@ -646,7 +1557,6 @@ I use =use-package= to manage package configuration and installation in most cas
 #+end_src
 
 
-
 * Miscellaneous key bindings
 Just some key bindings which don't fit elsewhere
 
@@ -673,7 +1583,7 @@ This is is then saved as a bookmark with Bookmark+
     (goto-char (point-max))
     (org-agenda nil "a"))
 #+end_src
-* General prettifying
+nnnnn* General prettifying
 ** Font settings
 General font settings
 
@@ -707,20 +1617,8 @@ This looks nice and is functional. There's plenty of customizations I need to lo
   :ensure t
   :hook (after-init . doom-modeline-mode))
 #+end_src
-** all-the-icons
-#+begin_src emacs-lisp
-(use-package all-the-icons)
-#+end_src
+s
 
-*** In dired
-#+begin_src emacs-lisp
-  (use-package all-the-icons-dired
-    :after (all-the-icons)
-    :hook (dired-mode . all-the-icons-dired-mode))
-#+end_src
-
-** TODO nerd-icons
-I came across [[https://github.com/rainstormstudio/nerd-icons.el][https://github.com/rainstormstudio/nerd-icons.el]] as an alternative to  [[*all-the-icons][all-the-icons]]
 
 ** variable-pitch-mode
 Modes to use variable pitch mode in: 
@@ -731,19 +1629,6 @@ Modes to use variable pitch mode in:
 #+end_src
 
 * Document modes
-** pdf-tools
-Viewing PDFs in emacs. I believe this can also annotate them.
-https://github.com/vedang/pdf-tools#about-pdf-tools
-
-It requires the epdfinfo server to be installed. This is handled automatically on Linux (including WSL), but may not on other platforms.
-If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]] manually
-
-#+begin_src emacs-lisp
-  (use-package pdf-tools
-    :if (eq system-type 'gnu/linux)
-    :config
-    (pdf-tools-install))
-#+end_src
 
 * Org Mode                                                              :org:
 ** htmlize
@@ -979,37 +1864,6 @@ https://github.com/alphapapa/org-web-tools
 ** TODO org-superagenda
 Try this out sometime, along with org-sidebar or org-tree-sidebar
 * Completion
-** TODO corfu
-Needs tweaking so it doesn't take so long in eglot
-#+begin_src emacs-lisp
-  (use-package corfu
-    :init
-    (global-corfu-mode)
-    :config
-    (setq corfu-auto t
-          corfu-auto-delay 0.2
-          corfu-auto-prefix 0))
-
-  ;; Use Dabbrev with Corfu
-  (use-package dabbrev
-    ;; Swap M-/ and C-M-/
-    :bind (("M-/" . dabbrev-completion)
-           ("C-M-/" . dabbrev-expand))
-    ;; Other useful Dabbrev configurations.
-    :custom
-    (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
-#+end_src
-
-** vertico
-vertical completion, tying into emacs's default completion
-[[https://github.com/minad/vertico]]
-some ideas [[https://kristofferbalintona.me/posts/202202211546/#vertico]]
-and [[https://github.com/skyler544/rune-emacs-config/blob/main/modules/movec.el]]
-#+begin_src emacs-lisp
-  (use-package vertico
-    :config
-    (vertico-mode))
-#+end_src
 
 ** vertico-directory
 find-file enhancements for vertico. Comes bundled with vertico
@@ -1024,169 +1878,8 @@ find-file enhancements for vertico. Comes bundled with vertico
            ("M-DEL" . vertico-directory-delete-word)))
 #+end_src
 
-**  marginalia
-extra information for minibuffer completions
-[[https://github.com/minad/marginalia]]
-#+begin_src emacs-lisp
-  ;; Enable richer annotations using the Marginalia package
-  (use-package marginalia
-    ;; Either bind `marginalia-cycle` globally or only in the minibuffer
-    :bind (;("M-A" . marginalia-cycle)
-           :map minibuffer-local-map
-           ("M-A" . marginalia-cycle))
 
-    ;; The :init configuration is always executed (Not lazy!)
-    :init
-    ;; Must be in the :init section of use-package such that the mode gets
-    ;; enabled right away. Note that this forces loading the package.
-    (marginalia-mode))
-#+end_src
 
-** all-the-icons-completion
-pretty iccons in minibuffer completion
-#+begin_src emacs-lisp
-(use-package all-the-icons-completion
-  :after (marginalia all-the-icons)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
-#+end_src
-
-** orderless
-A custom completion style, like helm's style [[https://github.com/oantolin/orderless]]
-#+begin_src emacs-lisp
-(use-package orderless
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-#+end_src
-
-** TODO consult
-uses the built-in [[help:completing-read][completing-read]] function to suggest completions. Particularly useful is [[help:consult-buffer][consult-buffer]]
-[[https://github.com/minad/consult]]
-
-This is just the config from the README as I get used to it.
-#+begin_src emacs-lisp
-    ;; Example configuration for Consult
-    (use-package consult
-      :demand t
-      ;; Replace bindings. Lazily loaded due by `use-package'.
-      :bind (;; C-c bindings (mode-specific-map)
-             ("C-c h" . consult-history)
-             ("C-c m" . consult-mode-command)
-             ("C-c k" . consult-kmacro)
-             ;; C-x bindings (ctl-x-map)
-             ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-             ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-             ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-             ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-             ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-             ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-             ;; Custom M-# bindings for fast register access
-             ("M-#" . consult-register-load)
-             ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-             ("C-M-#" . consult-register)
-             ;; Other custom bindings
-             ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-             ;; M-g bindings (goto-map)
-             ("M-g e" . consult-compile-error)
-             ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-             ("M-g g" . consult-goto-line)             ;; orig. goto-line
-             ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-             ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-             ("M-g m" . consult-mark)
-             ("M-g k" . consult-global-mark)
-             ("M-g i" . consult-imenu)
-             ("M-i" . consult-imenu) ;; my own preferred binding for imenu
-             ("M-g I" . consult-imenu-multi)
-             ;; M-s bindings (search-map)
-             ("M-s d" . consult-find)
-             ("M-s D" . consult-locate)
-             ("M-s g" . consult-grep)
-             ("M-s G" . consult-git-grep)
-             ("M-s r" . consult-ripgrep)
-             ("M-s l" . consult-line)
-             ("M-s L" . consult-line-multi)
-             ("M-s m" . consult-multi-occur)
-             ("M-s k" . consult-keep-lines)
-             ("M-s u" . consult-focus-lines)
-             ;; Isearch integration
-             ("M-s e" . consult-isearch-history)
-             :map isearch-mode-map
-             ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-             ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-             ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-             ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-             ;; Minibuffer history
-             :map minibuffer-local-map
-             ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-             ("M-r" . consult-history))                ;; orig. previous-matching-history-element
-
-      ;; Enable automatic preview at point in the *Completions* buffer. This is
-      ;; relevant when you use the default completion UI.
-      :hook (completion-list-mode . consult-preview-at-point-mode)
-
-      ;; The :init configuration is always executed (Not lazy)
-      :init
-
-      ;; Optionally configure the register formatting. This improves the register
-      ;; preview for `consult-register', `consult-register-load',
-      ;; `consult-register-store' and the Emacs built-ins.
-      (setq register-preview-delay 0.5
-            register-preview-function #'consult-register-format)
-
-      ;; Optionally tweak the register preview window.
-      ;; This adds thin lines, sorting and hides the mode line of the window.
-      (advice-add #'register-preview :override #'consult-register-window)
-
-      ;; Use Consult to select xref locations with preview
-      (setq xref-show-xrefs-function #'consult-xref
-            xref-show-definitions-function #'consult-xref)
-
-      ;; Configure other variables and modes in the :config section,
-      ;; after lazily loading the package.
-      :config
-
-      ;; Optionally configure preview. The default value
-      ;; is 'any, such that any key triggers the preview.
-      ;; (setq consult-preview-key 'any)
-      ;; (setq consult-preview-key "M-.")
-      ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
-      ;; For some commands and buffer sources it is useful to configure the
-      ;; :preview-key on a per-command basis using the `consult-customize' macro.
-      (consult-customize
-       consult-theme :preview-key '(:debounce 0.2 any)
-       consult-ripgrep consult-git-grep consult-grep
-       consult-bookmark consult-recent-file consult-xref
-       consult--source-bookmark consult--source-file-register
-       consult--source-recent-file consult--source-project-recent-file
-       ;; :preview-key "M-."
-       :preview-key '(:debounce 0.4 any))
-
-      ;; Optionally configure the narrowing key.
-      ;; Both < and C-+ work reasonably well.
-      (setq consult-narrow-key "<") ;; (kbd "C-+")
-
-      ;; Optionally make narrowing help available in the minibuffer.
-      ;; You may want to use `embark-prefix-help-command' or which-key instead.
-      ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
-
-      ;; By default `consult-project-function' uses `project-root' from project.el.
-      ;; Optionally configure a different project root function.
-      ;; There are multiple reasonable alternatives to chose from.
-      ;;;; 1. project.el (the default)
-  ;;    (setq consult-project-function #'consult--default-project--function)
-      ;;;; 2. projectile.el (projectile-project-root)
-
-      ;; (autoload 'projectile-project-root "projectile")
-
-      ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
-      ;;;; 3. vc.el (vc-root-dir)
-      ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
-      ;;;; 4. locate-dominating-file
-      ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
-    )
-#+end_src
 
 
 ** Embark
@@ -1245,16 +1938,7 @@ The only way to use git
 * Misc modes
 A collection of miscellaneous modes which don't require extensive configuration
 
-** Which Key
-This minor mode shows what keys are available next in the minibuffer
-#+begin_src emacs-lisp
-  (use-package which-key
-    :diminish
-    :config
-    (setq which-key-idle-delay 0.3)
-    (setq which-key-popup-type 'minibuffer)
-    (which-key-mode))
-#+end_src
+
 
 ** rainbow-delimiters
 This minor mode makes delimiters, like braces, which match, the same colour.
@@ -1301,58 +1985,9 @@ Should they be here or in the packages they make use of?
       :bind (("C-;" . avy-goto-char-timer)))
 #+end_src
 
-** lin to hightlight lines
-[[https://protesilaos.com/emacs/lin][=lin]]= is a package from [[https://protesilaos.com/emacs/][=prot=]] which modifies =hl-line-mode= faces for the modes in =lin-mode-hooks=
-The default list of modes is good for now
-#+begin_src emacs-lisp
-  (use-package lin
-    :config
-    (setq lin-mode-hooks
-          '(bongo-mode-hook
-             dired-mode-hook
-             elfeed-search-mode-hook
-             git-rebase-mode-hook
-             grep-mode-hook
-             ibuffer-mode-hook
-             ilist-mode-hook
-             ledger-report-mode-hook
-             log-view-mode-hook
-             magit-log-mode-hook
-             mu4e-headers-mode
-             notmuch-search-mode-hook
-             notmuch-tree-mode-hook
-             occur-mode-hook
-             org-agenda-mode-hook
-             pdf-outline-buffer-mode-hook
-             proced-mode-hook
-             tabulated-list-mode-hook
-             ;; my additions
-             ement-room-mode-hook
-             ement-room-list-mode-hook))
-    (lin-global-mode 1))
-#+end_src
 
-** helpful
-This is really nice improvement to the help system.
-It adds source code, better formatting, properties, keymap information, integrated tooling, alias info and more
 
-#+begin_src emacs-lisp
-  (use-package helpful
-    :bind (([remap describe-function] . helpful-callable)
-           ([remap describe-key] . helpful-key)
-           ([remap describe-variable] . helpful-variable)
-           ([remap describe-command] . helpful-command)
-           ("C-c C-d" . helpful-at-point)))
-#+end_src
 * Windows
-** ace-window
-[[https://github.com/abo-abo/ace-window]]
-#+begin_src emacs-lisp
-  (use-package ace-window
-    :bind (("M-o" . ace-window))
-    :custom-face
-    (aw-leading-char-face ((t (:foreground "red" :height 3.0 )))))
-#+end_src
 ** golden-ratio
 #+begin_src emacs-lisp
   (use-package golden-ratio)
@@ -1445,43 +2080,6 @@ This will set up ~auto-mode-alist~ for me too, which can be remapped if treesit 
 (use-package typescript-mode)
 #+end_src
 
-** Treesitter
-This is all from Mastering Emacs
-
-#+begin_src emacs-lisp
-  (use-package emacs
-    :ensure nil
-    :config
-    ;; Some default grammar definition sources
-    (setq treesit-language-source-alist
-     '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-       (cmake "https://github.com/uyha/tree-sitter-cmake")
-       (css "https://github.com/tree-sitter/tree-sitter-css")
-       (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-       (go "https://github.com/tree-sitter/tree-sitter-go")
-       (html "https://github.com/tree-sitter/tree-sitter-html")
-       (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-       (json "https://github.com/tree-sitter/tree-sitter-json")
-       (make "https://github.com/alemuller/tree-sitter-make")
-       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-       (python "https://github.com/tree-sitter/tree-sitter-python")
-       (toml "https://github.com/tree-sitter/tree-sitter-toml")
-       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-       (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
-    ;; Remap some of the modes
-    (setq major-mode-remap-alist
-          '((yaml-mode . yaml-ts-mode)
-            (bash-mode . bash-ts-mode)
-            (js2-mode . js-ts-mode)
-            (typescript-mode . typescript-ts-mode)
-            (json-mode . json-ts-mode)
-            (css-mode . css-ts-mode)
-            (python-mode . python-ts-mode))))
-#+end_src
-*** TODO Combobulate
-Combobulate looks really useful. I'll look into it more when I'm doing more programming which makes use of Treesitter
-Maybe it'll make IntelliJ style refactoring easier
 
 ** Jest
 [[https://github.com/rymndhng/jest-test-mode]]
@@ -1514,35 +2112,6 @@ Built in project management. I need to configure some more
 *** TODO exclude build & node files
 
 *** TODO switch between current file and test file a la projectile
-
-** Flymake
-Emacs's built in error checker. Eglot will use it to highlight errors
-
-Added useful key-bindings
-
-#+begin_src emacs-lisp
-  (use-package flymake
-    :bind (:map flymake-mode-map
-                ("M-p" . flymake-goto-prev-error)
-                ("M-n" . flymake-goto-next-error)))
-#+end_src
-** eglot
-Built in lsp support. Chosen over lsp-mode as its built in and uses more built-in functionality
-
-#+begin_src emacs-lisp
-  (use-package eglot
-    :config
-    (setq eglot-confirm-server-initiated-edits nil)
-    :hook
-    (typescript-mode . eglot-ensure)
-    (typescript-ts-mode . eglot-ensure)
-;;    :bind
-  ;;   ("C-c l a" . eglot-code-actions)
-    )
-#+end_src
-
-*** TODO keymapping
-make a mode map for eglot-mode so keys only work there
 
 ** Python
 *** elpy
@@ -1872,74 +2441,7 @@ needs downloading and installing. No ELPA
     (democratize-enable-examples-in-helpful)
     (democratize-enable-examples-in-help))
 #+end_src
-* Dired
-From Prot: [ Watch: <https://protesilaos.com/codelog/2023-06-26-emacs-file-dired-basics/> (2023-06-26) ]
 
-A lot of this is taken from Prot's config: https://protesilaos.com/emacs/dotemacs#h:f8b08a77-f3a8-42fa-b1a9-f940348889c3
-
-#+begin_src emacs-lisp
-  (use-package dired
-    :ensure nil
-    :config
-    (setq dired-recursive-copies 'always)
-    (setq dired-recursive-deletes 'always)
-    (setq delete-by-moving-to-trash t)
-    (setq dired-auto-revert-buffer #'dired-directory-changed-p)
-    :hook ((dired-mode . dired-hide-details-mode)
-           (dired-mode . hl-line-mode)))
-
-#+end_src
-* Denote
-#+begin_src emacs-lisp
-  (use-package denote
-    :bind
-    (
-     ;; Note creation
-     ("C-c n n" . denote)
-     ("C-c n N" . denote-type)
-     ("C-c n s" . denote-subdirectory)
-     ;; links
-     ("C-c n i" . denote-link) ;; mnemonic 'insert'
-     ("C-c n I" . denote-add-links)
-     ("C-c n b"  . denote-backlinks)
-     ("C-c n f f" . denote-find-link)
-     ("C-c n d b" . denote-find-backlink)
-     ;; renaming - can happen anywhere so files can be renamed in denote syntax
-     ("C-c n r" . denote-rename-file)
-     ("C-c n R" . denote-rename-file-using-front-matter)
-     :map dired-mode-map
-     ("C-c C-d C-i" . denote-link-dired-marked-notes)
-     ("C-c C-d C-r" . denote-dired-rename-marked-files)
-     ("C-c C-d C-R" . denote-dired-rename-marked-files-using-front-matter))
-    :hook
-    ((dired-mode . denote-dired-mode))
-    :config
-    (setq denote-directory (expand-file-name "~/org/notes"))
-    (setq denote-known-keywords '("emacs" "radio"))
-    (setq denote-infer-keywords t)
-    (setq denote-sort-keywords t)
-    (setq denote-file-type nil)           ; Default: Org
-    (setq denote-prompts '(subdirectory title keywords)) ; Maybe signature in the future?
-    (setq denote-allow-multi-word-keywords t)
-    ;; use consult ripgrep to search denote notes
-    (if (fboundp 'consult-ripgrep)
-        (defun consult-denote-ripgrep ()
-          "Search with 'rg' for files in the denote-directory"
-          (interactive)
-          (consult-ripgrep denote-directory ""))))
-#+end_src
-
-** consult-notes
-Use consult to select notes
-#+begin_src emacs-lisp
-  (use-package consult-notes
-    :commands (consult-notes
-               const-notes-search-in-all-notes)
-    :config
-    (setq consult-notes-file-dir-sources
-          `(("Denote Notes" ?d ,(denote-directory))
-            ("Music Notes" ?m ,(concat (denote-directory) "music/")))))
-#+end_src
 * TODO session management
 Need to find some way to save state across sessions
 * TODO general key bindings
@@ -1983,18 +2485,7 @@ keycode 202 = F24 F24 F24
            ("e r" . ement-list-rooms)
            ("c" . open-config)))
 #+end_src
-* Bookmarks+
-:LOGBOOK:
-- State "DONE"       from "TODO"       [2023-11-11 Sat 21:47]
-- State "TODO"       from "NEXT"       [2023-09-19 Tue 10:28]
-:END:
-https://www.emacswiki.org/emacs/BookmarkPlus
 
-The github mirror seems to be kept up to date, so this will do for fetching.
-#+begin_src emacs-lisp
-  (use-package bookmark+
-    :vc (:fetcher github :repo emacsmirror/bookmark-plus.git))
-#+end_src
 * After everything loaded
 This seems to be required to be loaded after everything else for some reason. Maybe it was a bug somewhere?
 **  Line numbers
