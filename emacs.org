@@ -1377,17 +1377,52 @@ TODO: Promote package
 Try out projection: https://github.com/mohkale/projection
 ** TODO configure project.el
 [[help:project-vc-extra-root-markers]]
+** TODO embark
+eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
+
+[[https://github.com/oantolin/embark]]
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package embark
+    :ensure t
+    :bind
+    (("C-." . embark-act)         ;; pick some comfortable binding
+     ("C-;" . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+
+    :init
+
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                   nil
+                   (window-parameters (mode-line-format . none)))))
+
+  ;; Consult users will also want the embark-consult package.
+  (use-package embark-consult
+    :ensure t
+    :after (embark consult)
+    :demand t ; only necessary if you have the hook below
+    ;; if you want to have consult previews as you move around an
+    ;; auto-updating embark collect buffer
+    :hook
+    (embark-collect-mode . consult-preview-at-point-mode))
+#+end_src
+
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
 (provide 'twem2-trial)
 #+end_src
 * ------ below here is not yet brought in ------
 * TODO things to try out
-** TODO embark
-eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
+
+*
 ** TODO more consult
-- consult-dir
-** TODO  
+- consult-dir 
 * 29.1 bugfix for tramp 2.6.1.1.1                                  :disabled:
 Fix from notes about GNU ELPA version
 #+begin_src emacs-lisp
