@@ -29,7 +29,7 @@ Emacs configuration.
 Currently this is used on:
 - WSL2
 - Windows
-  
+
 In the past I've used previous iterations on MacOS X, and I am experimenting with Android.
 
 If you are looking at the public version of this, then some links will probably not work, and there will be missing sections. Do not just try and use this as is - it will probably fail
@@ -85,7 +85,7 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
 #+end_src
 
 
-** Turn off native compilation warnings                    
+** Turn off native compilation warnings
 Should this be in =init.el=?
 #+begin_src emacs-lisp :tangle early-init.el
   (setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
@@ -206,6 +206,8 @@ Each module ~provides~ a package
   (require 'twem2-python)
   (require 'twem2-pdf)
   (require 'twem2-trial)
+  (require 'twem2-term)
+  (require 'twem2-casual)
 #+end_src
 * Essential configuration
 Things which are currently essential and will always be loaded
@@ -217,7 +219,7 @@ Things which are currently essential and will always be loaded
 Rebind =M-i= to =imenu=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
      :bind (("M-i" . imenu)
-            )
+            ("<f11>" . nil))
 #+end_src
 ** emacs customization
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
@@ -248,6 +250,11 @@ Use visible bell rather than making a noise (could turn off completely?)
 *** Make ~compile-mode~ use ANSI colours
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
 (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+#+end_src
+*** Strip whitespace on save
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (add-hook 'before-save-hook
+  	  'delete-trailing-whitespace)
 #+end_src
 ** end of use-package
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
@@ -375,11 +382,17 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
             (regular
              :inherit small
              :default-height 120)
-            
             (large
              :inherit small
              :default-height 150
-             )))
+             )
+  	  (extra-large
+  	   :inherit small
+  	   :default-height 200
+  	   )
+  	  (ioveska
+  	   :inherit large
+  	   :font-family "Ioveska")))
     (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))
     (add-hook 'kill-emacs-hook #'fontaine-store-latest-preset)
     (add-hook 'fontaine-set-preset-hook #'fontaine-store-latest-preset)
@@ -395,7 +408,7 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
 #+end_src
 ** variable pitch mode
 I want variable pitch in modes where I am focussed on prose
-I do wish info mode had better handling of 
+I do wish info mode had better handling of
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
   (use-package variable-pitch
@@ -466,121 +479,122 @@ This could do with being split up somehow.
 Some of the =:config= section is customizable, so should probably be in =:custom= in case code is run on setting (or the =setopt= macro could be used)
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el :mkdirp yes
-  (use-package org
-    :ensure t
-    :bind (("C-c l" . org-store-link)
-           ("C-c a" . org-agenda)
-           ("C-c c" . org-capture)
-  	 :map org-mode-map
-  	 ("C-c i" . twem2-org-latex-insert-brackets))
-    :diminish org-indent-mode
-    :custom
-    (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
-    ;; make font bigger in latex preview
-    (org-format-latex-options '(:scale 1.0))
-    ;; Add packages to LaTeX fragments
-    (org-latex-packages-alist'(("" "multirow" t nil)))
-    ;; use dvisvgm to generate fragments - it works better
-    (org-preview-latex-default-process 'dvisvgm)
-    ;; load shell babel
-    (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
-    :config
-    ;; Logging
-    (setq org-log-into-drawer t
-          org-log-reschedule 'time
-          org-log-redeadline 'time)
-    ;; TODO keywords
-    (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
-                                        "TODO(t!/!)"
-                                        "NEXT(n!/!)"
-                                        "STARTED(s!)"
-                                        "WAITING(w@/!)"
-                                        "|"
-                                        "DONE(d!/!)"
-                                        "CANCELLED(c@/!)")
-                              (type "PROJECT" "|" "DONE")))
-    ;; ordering of tasks
-    (setq org-enforce-todo-dependencies t
-          org-track-ordered-property-with-tag t
-          org-agenda-dim-blocked-tasks t
-          org-enforce-todo-checkbox-dependencies t)
-    ;; Capture templates
-    (setq org-capture-templates
-          `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
-             ,(concat "* %?\n"
-                      ":PROPERTIES:\n"
-                      ":CREATED: %U\n"
-                      ":END:\n\n")
-             :empty-lines 1)
-            ("t" "TODO" entry (file+headline "~/org/TODO.org" "Unreviewed")
-             ,(concat "* TODO %^{Title}\n"
-                      ":PROPERTIES:\n"
-                      ":CREATED: %U\n"
-                      ":END:\n\n"
-                      "%?"))
-            ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
-                                               ,(format-time-string "%Y")
-                                               ,(format-time-string "%Y-%m"))
-             ,(concat "* %t [/]\n"
-                      "  - [ ] %?"))
-            ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
-             ,(concat "* %^{Title|%:description}\n"
-                      "  Source: %u, %c\n\n"
-                      "  %i%?"))
-            ))
-    ;; Source editing popup window
-    ; TODO commenting out to see if this is still what I want
-    ;  (setq org-src-window-setup 'plain)
-    ;; Catch accidental deletions of whole subtrees
-    (setq org-fold-catch-invisible-edits 'smart)
-    ;; Only count direct children of check boxes
-    (setq org-checkbox-hierarchical-statistics t)
+    (use-package org
+      :ensure t
+      :bind (("C-c l" . org-store-link)
+             ("C-c a" . org-agenda)
+             ("C-c c" . org-capture)
+    	 :map org-mode-map
+    	 ("C-c i" . twem2-org-latex-insert-brackets))
+      :diminish org-indent-mode
+      :custom
+      (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
+      ;; make font bigger in latex preview
+      (org-format-latex-options '(:scale 1.0))
+      ;; Add packages to LaTeX fragments
+      (org-latex-packages-alist'(("" "multirow" t nil)
+  			       ("" "mathtools" t nil)))
+      ;; use dvisvgm to generate fragments - it works better
+      (org-preview-latex-default-process 'dvisvgm)
+      ;; load shell babel
+      (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
+      :config
+      ;; Logging
+      (setq org-log-into-drawer t
+            org-log-reschedule 'time
+            org-log-redeadline 'time)
+      ;; TODO keywords
+      (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
+                                          "TODO(t!/!)"
+                                          "NEXT(n!/!)"
+                                          "STARTED(s!)"
+                                          "WAITING(w@/!)"
+                                          "|"
+                                          "DONE(d!/!)"
+                                          "CANCELLED(c@/!)")
+                                (type "PROJECT" "|" "DONE")))
+      ;; ordering of tasks
+      (setq org-enforce-todo-dependencies t
+            org-track-ordered-property-with-tag t
+            org-agenda-dim-blocked-tasks t
+            org-enforce-todo-checkbox-dependencies t)
+      ;; Capture templates
+      (setq org-capture-templates
+            `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
+               ,(concat "* %?\n"
+                        ":PROPERTIES:\n"
+                        ":CREATED: %U\n"
+                        ":END:\n\n")
+               :empty-lines 1)
+              ("t" "TODO" entry (file+headline "~/org/TODO.org" "Unreviewed")
+               ,(concat "* TODO %^{Title}\n"
+                        ":PROPERTIES:\n"
+                        ":CREATED: %U\n"
+                        ":END:\n\n"
+                        "%?"))
+              ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
+                                                 ,(format-time-string "%Y")
+                                                 ,(format-time-string "%Y-%m"))
+               ,(concat "* %t [/]\n"
+                        "  - [ ] %?"))
+              ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
+               ,(concat "* %^{Title|%:description}\n"
+                        "  Source: %u, %c\n\n"
+                        "  %i%?"))
+              ))
+      ;; Source editing popup window
+      ; TODO commenting out to see if this is still what I want
+      ;  (setq org-src-window-setup 'plain)
+      ;; Catch accidental deletions of whole subtrees
+      (setq org-fold-catch-invisible-edits 'smart)
+      ;; Only count direct children of check boxes
+      (setq org-checkbox-hierarchical-statistics t)
 
-    ;;; Refiling
-    ;; Set targets to all agenda files
-    (setq org-refile-targets
-          '((nil :maxlevel . 9)
-            (org-agenda-files :maxlevel . 9)))
-    ;; Allow making top level tasks (start targets with filename)
-    (setq org-refile-use-outline-path 'file)
-    ;; Give complete targets in completion - better for company setup
-    (setq org-outline-path-complete-in-steps nil)
+      ;;; Refiling
+      ;; Set targets to all agenda files
+      (setq org-refile-targets
+            '((nil :maxlevel . 9)
+              (org-agenda-files :maxlevel . 9)))
+      ;; Allow making top level tasks (start targets with filename)
+      (setq org-refile-use-outline-path 'file)
+      ;; Give complete targets in completion - better for company setup
+      (setq org-outline-path-complete-in-steps nil)
 
-    ;;; Styling
-    ;; Indented mode (when not turned off explicitly)
-    (setq org-startup-indented t)
-    ;; Change the ellipsis
-    (setq org-ellipsis "⤵")
-    ;; Custom agenda
-      (setq org-agenda-custom-commands
-          '(("m" "Agenda"
-             (
-              (todo "STARTED"
-                    ((org-agenda-overriding-header "In progress")))
-              (agenda ""
-                      ((org-agenda-overriding-header "Daily Agenda")
-                       (org-agenda-span 1)
-                       (org-deadline-warning-days 0)
-                       (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
-                       ))
-              (agenda ""
-                      ((org-agenda-overriding-header "Next three days")
-                       (org-agenda-start-on-weekday nil)
-                       (org-agenda-start-day "+1d")
-                       (org-agenda-span 3)
-                       (org-deadline-warning-days 0)))
-              (agenda ""
-                      ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
-                       (org-agenda-span 14)
-                       (org-agenda-show-all-dates nil)
-                       (org-agenda-time-grid nil)
-                       (org-deadline-warning-days 0)
-                       (org-agenda-entry-types '(:deadline))))
-              (todo "NEXT"
-                    ((org-agenda-overriding-header "Tasks to do next")))
-              (todo "WAITING"
-                    ((org-agenda-overriding-header "Tasks on hold")))))))
-    )
+      ;;; Styling
+      ;; Indented mode (when not turned off explicitly)
+      (setq org-startup-indented t)
+      ;; Change the ellipsis
+      (setq org-ellipsis "⤵")
+      ;; Custom agenda
+        (setq org-agenda-custom-commands
+            '(("m" "Agenda"
+               (
+                (todo "STARTED"
+                      ((org-agenda-overriding-header "In progress")))
+                (agenda ""
+                        ((org-agenda-overriding-header "Daily Agenda")
+                         (org-agenda-span 1)
+                         (org-deadline-warning-days 0)
+                         (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+                         ))
+                (agenda ""
+                        ((org-agenda-overriding-header "Next three days")
+                         (org-agenda-start-on-weekday nil)
+                         (org-agenda-start-day "+1d")
+                         (org-agenda-span 3)
+                         (org-deadline-warning-days 0)))
+                (agenda ""
+                        ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
+                         (org-agenda-span 14)
+                         (org-agenda-show-all-dates nil)
+                         (org-agenda-time-grid nil)
+                         (org-deadline-warning-days 0)
+                         (org-agenda-entry-types '(:deadline))))
+                (todo "NEXT"
+                      ((org-agenda-overriding-header "Tasks to do next")))
+                (todo "WAITING"
+                      ((org-agenda-overriding-header "Tasks on hold")))))))
+      )
 #+end_src
 ** OrgTempo templating
 Org mode supports templates. Use =C-c C-,= to access them.
@@ -1039,6 +1053,18 @@ Use consult to select notes
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el
 (provide 'twem2-denote)
 #+end_src
+
+* TODO navigation module
+** avy
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-navigation.el :mkdirp yes
+  (use-package avy
+    :ensure t
+    :bind ("M-s s" . avy-goto-char-timer))
+#+end_src
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-navigation.el :mkdirp yes
+ (provide 'twem2-navigation)
+#+end_src
 * TODO window systems module
 Configuration about window management and configuration within Emacs
 ** ace-window
@@ -1082,7 +1108,7 @@ https://www.emacswiki.org/emacs/BookmarkPlus
 The github mirror seems to be kept up to date, so this will do for fetching.
 
 This is a PITA because ~use-package~ is a macro it tries to always expand - I will need to look deeper into this, or use conditional exporting
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-bookmarks.el :mkdirp yes
+#+begin_src emacs-lisp #:tangle twem2-config-modules/twem2-bookmarks.el :mkdirp yes
   (if (version< emacs-version "30")
    ;   (use-package bookmark+
     ;     :ensure t
@@ -1137,6 +1163,7 @@ This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-g
        (go "https://github.com/tree-sitter/tree-sitter-go")
        (html "https://github.com/tree-sitter/tree-sitter-html")
        (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+       (java "https://github.com/tree-sitter/tree-sitter-java.git")
        (json "https://github.com/tree-sitter/tree-sitter-json")
        (make "https://github.com/alemuller/tree-sitter-make")
        (markdown "https://github.com/ikatyang/tree-sitter-markdown")
@@ -1163,7 +1190,7 @@ https://www.masteringemacs.org/article/combobulate-intuitive-structured-navigati
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el
   (provide 'twem2-treesitter)
 #+end_src
-         
+
 * TODO eglot module
 Currently I just use eglot as is - I will need to do some configuration at some point. Particularly key bindings, auto starting and
 some corfu customization (see https://github.com/minad/corfu/wiki)
@@ -1173,7 +1200,7 @@ some corfu customization (see https://github.com/minad/corfu/wiki)
     :ensure t
     :bind (:map eglot-mode-map
                 ("C-<return>" . eglot-code-actions))
-    :hook ((python-ts-mode python-mode) . eglot-ensure))
+    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-modeg) . eglot-ensure))
 #+end_src
 
 ** override completion style
@@ -1204,6 +1231,8 @@ See https://github.com/minad/corfu/wiki
 I'm using ~python-lsp-server~ https://github.com/python-lsp/python-lsp-server
 I've found that the ~YAPF~ code formatter doesn't work very well - it indents to  =tab-width= which may not be what you want
 the ~autopep8~ formatter works as expected. I've not tried ~python-lsp-black~ https://github.com/python-lsp/python-lsp-black
+
+The dependencies eg. autopep8 need to be installed
 ** provide twem2-eglot
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el
   (provide 'twem2-eglot)
@@ -1248,9 +1277,12 @@ Package for inserting $\LaTeX$ quickly. Usable in =org-mode=, =LaTeX-mode=, and 
   (provide 'twem2-web-dev)
 #+end_src
 * NEXT  terminal emulation module
-#+begin_src emacs-lisp
+eat https://codeberg.org/akib/emacs-eat
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
   (use-package eat
     :ensure t)
+
+  (provide 'twem2-term)
 #+end_src
 * version control module
 ** magit
@@ -1305,17 +1337,41 @@ On Windows, the font will still have to be installed manually
 TODO: make ~pyenv-mode~ only active when ~python-mode~ or ~org-mode~ active
 TODO: org-babel config
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-python.el
-  (use-package pyvenv
+  ;; (use-package pyvenv
+  ;;   :ensure t
+  ;;   :config
+  ;;   (pyvenv-mode t))
+
+  (use-package pipenv
     :ensure t
-    :config
-    (pyvenv-mode t))
+    :hook (python-ts-mode . pipenv-mode)
+    :init
+    (setq pipenv-projectile-after-switch-function
+  	#'pipenv-projectile-after-switch-extended))
 
   (org-babel-do-load-languages
-   'org-babel-load-languages
+                           'org-babel-load-languages
    (add-to-list 'org-babel-load-languages '(python . t)))
 
 
   (provide 'twem2-python)
+#+end_src
+* TODO ruby module
+** inf-ruby
+Launch IRB in emacs
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ruby.el
+  (use-package inf-ruby
+    :ensure t
+    :hook (ruby-mode . inf-ruby))
+#+end_src
+** rbenv.el
+[[https://github.com/senny/rbenv.el][https://github.com/senny/rbenv.el]]
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ruby.el
+  (use-package rbenv
+    :ensure t
+    :init
+      (customize-set-variable 'rbenv-installation-dir "/home/linuxbrew/.linuxbrew/opt/rbenv/")
+    :config (global-rbenv-mode))
 #+end_src
 * PDF module
 ** pdf-tools
@@ -1334,18 +1390,38 @@ If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]
 
   (provide 'twem2-pdf)
 #+end_src
-
-* testing module
-Anything I'm trying out
-** TODO Casual mode - calc porcelain
-This really helps with using calc
-TODO: Promote package
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+* Casual module
+casual provides transient menus for many modes, exposing the functionality in a much clearer way
+** Main package
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
   (use-package casual
     :ensure t
-    :config
-    (define-key calc-mode-map (kbd "C-o") 'casual-main-menu))
+    :bind (:map calc-mode-map ("C-o" . casual-calc-tmenu)
+  	 :map dired-mode-map ("C-o" . casual-dired-tmenu)
+  	 :map isearch-mode-map ("C-o" . casual-isearch-tmenu)
+  	 :map ibuffer-mode-map
+  	      ("C-o" . casual-ibuffer-tmenu)
+   	          ("F" . casual-ibuffer-filter-tmenu)
+  	      ("s" . casual-ibuffer-sortby-tmenu)
+  	 :map Info-mode-map ("C-o" . casual-info-tmenu)
+  	 :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
+  	 :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
+  	 :map org-agenda-mode-map ("C-o" . casual-agenda-tmenu)))
 #+end_src
+** casual-avy
+transient menu for avy (maybe I'll use it more)
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
+      (use-package casual-avy
+        :ensure t
+        :bind ("C-M-g" . casual-avy-tmenu))
+
+#+end_src
+** provides
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
+  (provide 'twem2-casual)
+#+end_src
+* testing module
+Anything I'm trying out
 ** TODO activities
 :LOGBOOK:
 - State "TODO"       from              [2024-04-26 Fri 14:02]
@@ -1412,17 +1488,64 @@ eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
+** TODO emacs everywhere
+https://github.com/tecosaur/emacs-everywhere
 
+Running on WSL2 means I need to work out how to copy from Windows if in a Windows program.
+Looks like I need to detect WSL2 in the init, make sure PowerShell is on the Linux path and handle opening the frame differently
+
+Will require a fair amount of work it looks like
+
+Using the conifg below sort of works, but its not a pleasant experience
+
+#+begin_src emacs-lisp #:tangle twem2-config-modules/twem2-trial.el
+        (use-package emacs-everywhere
+          :ensure t
+          :custom
+          (emacs-everywhere-paste-command nil "Don't paste, it doesn't seem to work")
+          (emacs-everywhere-copy-command nil "Doesn't seem to work")
+          (emacs-everywhere-window-focus-command (list "powershell.exe" "-NoProfile" "-command"
+                           "& {Add-Type 'using System; using System.Runtime.InteropServices; public class Tricks { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); }'; [tricks]::SetForegroundWindow(%w) }") "Going back to Windows")
+  	(emacs-everywhere-app-info-function #'emacs-everywhere--app-info-windows))
+#+end_src
+** TODO hyperbole
+https://www.gnu.org/software/hyperbole
+I think this provides links to other places (buttons) in buffers
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package hyperbole
+    :disabled
+    :config
+    (hyperbole-mode 1))
+#+end_src
+** TODO gnuplot
+Needed to include gnuplot plots in org-mode
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package gnuplot
+    :ensure t
+    :after org
+    :config
+   	 (org-babel-do-load-languages
+  	  'org-babel-load-languages
+  	  '((gnuplot . t))))
+#+end_src
+** TODO tramp configureation
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package emacs
+    :config
+    (setopt tramp-default-proxies-alist '((".*" "\\`root\\'" "/ssh:%h:"))))t
+#+end_src
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
 (provide 'twem2-trial)
 #+end_src
 * ------ below here is not yet brought in ------
+
 * TODO things to try out
 
 *
 ** TODO more consult
-- consult-dir 
+- consult-dir
 * 29.1 bugfix for tramp 2.6.1.1.1                                  :disabled:
 Fix from notes about GNU ELPA version
 #+begin_src emacs-lisp
@@ -1573,7 +1696,7 @@ I don't see any use of trailing whitespace.
 #+END_SRC
 
 * Package management
-I did try using =straight= for package management, but I didn't like it, and deciding the builtin =package.el= sufficed 
+I did try using =straight= for package management, but I didn't like it, and deciding the builtin =package.el= sufficed
 
 
 
@@ -1656,14 +1779,13 @@ s
 
 
 ** variable-pitch-mode
-Modes to use variable pitch mode in: 
+Modes to use variable pitch mode in:
 #+begin_src emacs-lisp
     (use-package variable-pitch
       :ensure nil
       :hook (org-mode . variable-pitch-mode))
 #+end_src
 
-* Document modes
 
 * Org Mode                                                              :org:
 ** htmlize
@@ -1806,7 +1928,7 @@ See also - https://www.reddit.com/r/emacs/comments/4366f9/how_do_orgrefiletarget
 #+end_src
 
 Targets start with the file name - allows creating level 1 tasks
-                                                                
+
 #+BEGIN_SRC emacs-lisp
   (setq org-refile-use-outline-path 'file)
 #+END_SRC
@@ -1917,39 +2039,6 @@ find-file enhancements for vertico. Comes bundled with vertico
 
 
 
-** Embark
-[[https://github.com/oantolin/embark]]
-#+begin_src emacs-lisp
-(use-package embark
-
-  :bind
-  (("C-." . embark-act)         ;; pick some comfortable binding
-   ("C-;" . embark-dwim)        ;; good alternative: M-.
-   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
-
-  :init
-
-  ;; Optionally replace the key help with a completing-read interface
-  (setq prefix-help-command #'embark-prefix-help-command)
-
-  :config
-
-  ;; Hide the mode line of the Embark live/completions buffers
-  (add-to-list 'display-buffer-alist
-               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                 nil
-                 (window-parameters (mode-line-format . none)))))
-
-;; Consult users will also want the embark-consult package.
-(use-package embark-consult
-  :after (embark consult)
-  :demand t ; only necessary if you have the hook below
-  ;; if you want to have consult previews as you move around an
-  ;; auto-updating embark collect buffer
-  :hook
-  (embark-collect-mode . consult-preview-at-point-mode))
-#+end_src
-
 ** TODO Snippets
 I need to sort out how to use snippets
 
@@ -1963,12 +2052,6 @@ I need to sort out how to use snippets
   ;;:after yasnippet)
 #+end_src
 
-* Magit
-The only way to use git
-#+name: magit
-#+begin_src emacs-lisp
-  (use-package magit)
-#+end_src
 
 * Misc modes
 A collection of miscellaneous modes which don't require extensive configuration
@@ -2163,7 +2246,7 @@ Seems to be the best Python support
 Reformat elisp
 #+begin_src emacs-lisp
 (use-package elisp-autofmt)
-#+end_src 
+#+end_src
 ** scheme
 #+begin_src emacs-lisp
   (use-package geiser-mit)
@@ -2481,7 +2564,7 @@ needs downloading and installing. No ELPA
 Need to find some way to save state across sessions
 * TODO general key bindings
 A selection of keybindings which are useful for my personal workflow
-** Functions for use in my 
+** Functions for use in my
 *** Open my emacs config
 #+begin_src emacs-lisp
   (defun open-config ()
