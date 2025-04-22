@@ -119,6 +119,7 @@ It has convinced me to try out ~gnu-elpa-devel~ and to set priorities
   ;;;; Package management
   (require 'package)
 
+
   ;; I want to set projects myself
   (setq package-vc-register-as-project nil) ; Emacs 30
 
@@ -204,6 +205,7 @@ Each module ~provides~ a package
   (require 'twem2-markdown)
   (require 'twem2-icons)
   (require 'twem2-python)
+  (require 'twem2-ruby)
   (require 'twem2-pdf)
   (require 'twem2-trial)
   (require 'twem2-term)
@@ -921,10 +923,10 @@ Needs tweaking so it doesn't take so long in eglot
     :init
     (global-corfu-mode)
     :custom
-    (corfu-separator ?\s)
+;    (corfu-separator ?\s)
     ;(corfu-preselect 'prompt)
     :bind
-    (:map corfu-map ("M-SPC" . corfu-insert-separator))
+ ;   (:map corfu-map ("M-SPC" . corfu-insert-separator))
     :config
     (setq corfu-auto t
           corfu-auto-delay 0.2
@@ -1151,37 +1153,39 @@ To use it for a language you need to install a library for that language with =t
 This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el :mkdirp yes
-  (use-package emacs
-    :if (treesit-available-p)
-    :config
-    ;; Some default grammar definition sources
-    (setq treesit-language-source-alist
-     '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-       (cmake "https://github.com/uyha/tree-sitter-cmake")
-       (css "https://github.com/tree-sitter/tree-sitter-css")
-       (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-       (go "https://github.com/tree-sitter/tree-sitter-go")
-       (html "https://github.com/tree-sitter/tree-sitter-html")
-       (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-       (java "https://github.com/tree-sitter/tree-sitter-java.git")
-       (json "https://github.com/tree-sitter/tree-sitter-json")
-       (make "https://github.com/alemuller/tree-sitter-make")
-       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-       (python "https://github.com/tree-sitter/tree-sitter-python")
-       (toml "https://github.com/tree-sitter/tree-sitter-toml")
-       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-       (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
-    ;; Remap some of the modes
-    (setq major-mode-remap-alist
-          '((yaml-mode . yaml-ts-mode)
-            (bash-mode . bash-ts-mode)
-            (js-mode . js-ts-mode)
-            (typescript-mode . typescript-ts-mode)
-            (json-mode . json-ts-mode)
-            (css-mode . css-ts-mode)
-            (python-mode . python-ts-mode)
-            (go-mode . go-ts-mode))))
+      (use-package emacs
+        :if (treesit-available-p)
+        :config
+        ;; Some default grammar definition sources
+        (setq treesit-language-source-alist
+         '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+           (cmake "https://github.com/uyha/tree-sitter-cmake")
+           (css "https://github.com/tree-sitter/tree-sitter-css")
+           (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+           (go "https://github.com/tree-sitter/tree-sitter-go")
+           (html "https://github.com/tree-sitter/tree-sitter-html")
+           (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+           (java "https://github.com/tree-sitter/tree-sitter-java.git")
+           (json "https://github.com/tree-sitter/tree-sitter-json")
+           (make "https://github.com/alemuller/tree-sitter-make")
+           (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+           (python "https://github.com/tree-sitter/tree-sitter-python")
+           (toml "https://github.com/tree-sitter/tree-sitter-toml")
+           (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+           (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+           (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+           (ruby "https://github.com/tree-sitter/tree-sitter-ruby")))
+        ;; Remap some of the modes
+        (setq major-mode-remap-alist
+              '((yaml-mode . yaml-ts-mode)
+                (bash-mode . bash-ts-mode)
+                (js-mode . js-ts-mode)
+                (typescript-mode . typescript-ts-mode)
+                (json-mode . json-ts-mode)
+                (css-mode . css-ts-mode)
+                (python-mode . python-ts-mode)
+                (go-mode . go-ts-mode)
+  	      (ruby-mode . ruby-ts-mode))))
 #+end_src
 
 ** TODO combobulate
@@ -1200,7 +1204,8 @@ some corfu customization (see https://github.com/minad/corfu/wiki)
     :ensure t
     :bind (:map eglot-mode-map
                 ("C-<return>" . eglot-code-actions))
-    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-modeg) . eglot-ensure))
+    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
+    :config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp")))
 #+end_src
 
 ** override completion style
@@ -1372,6 +1377,10 @@ Launch IRB in emacs
     :init
       (customize-set-variable 'rbenv-installation-dir "/home/linuxbrew/.linuxbrew/opt/rbenv/")
     :config (global-rbenv-mode))
+#+end_src
+** provides
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ruby.el
+  (provide 'twem2-ruby)
 #+end_src
 * PDF module
 ** pdf-tools
