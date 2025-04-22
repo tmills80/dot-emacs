@@ -347,7 +347,10 @@ https://protesilaos.com/emacs/ef-themes
     (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
           ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
     ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
-    (ef-themes-select 'ef-spring))
+    (if (eq system-type 'gnu/linux)
+        (ef-themes-select 'ef-spring)
+      (ef-themes-select 'ef-light)))
+  ;; ef-cyprus duo-light ef-frost ef-light
 #+end_src
 
 Bind =<f5>= to the toggle function
