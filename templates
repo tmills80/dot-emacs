@@ -1,0 +1,12 @@
+org-mode
+
+(matrix "\\begin{pmatrix}\n" r> n> "\\end{pmatrix}")
+(vec "\\vec{" p "}")
+(lvec "\\overrightarrow{" p "}")
+(bold "\\mathbf{" p "}")
+(normv "\\| \\vec{" p "} \\|")
+($vec "$\\vec{" p "}$")
+($lvec "$\\overrightarrow{" p "}$")
+($bold "$\\mathbf{" p "}$")
+(dotp "\\vec{" p "}\\cdot\\vec{" p "}")
+(frac "\\frac{" p "}{" p "}")
