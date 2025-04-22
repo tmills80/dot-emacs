@@ -705,6 +705,7 @@ This is just the config from the README as I get used to it.
     (use-package consult
       :ensure t
       :demand t
+      :requires org-mode
 
       ;; Replace bindings. Lazily loaded due by `use-package'.
       :bind (;; C-c bindings (mode-specific-map)
@@ -925,10 +926,10 @@ Needs tweaking so it doesn't take so long in eglot
     :ensure t
     :init
     (global-corfu-mode)
-    :custom
+;    :custom
 ;    (corfu-separator ?\s)
     ;(corfu-preselect 'prompt)
-    :bind
+;    :bind
  ;   (:map corfu-map ("M-SPC" . corfu-insert-separator))
     :config
     (setq corfu-auto t
@@ -1331,6 +1332,7 @@ On Windows, the font will still have to be installed manually
 
   (use-package nerd-icons-corfu
     :ensure t
+    :requires corfu
     :config
     (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
@@ -1378,7 +1380,10 @@ Launch IRB in emacs
   (use-package rbenv
     :ensure t
     :init
-      (customize-set-variable 'rbenv-installation-dir "/home/linuxbrew/.linuxbrew/opt/rbenv/")
+    (progn
+      (if (eq system-type 'darwin)
+  	(customize-set-variable 'rbenv-installation-dir "/opt/homebrew/")
+        (customize-set-variable 'rbenv-installation-dir "/home/linuxbrew/.linuxbrew/opt/rbenv/")))
     :config (global-rbenv-mode))
 #+end_src
 ** provides
