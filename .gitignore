@@ -1,0 +1,12 @@
+/.last-package-update-day
+/auto-save-list/
+/*~
+/eln-cache/
+/elpa/
+*.elc
+/package-quickstart.el
+/tramp
+/places
+/transient/
+/early-init.el
+/.org-id-locations
