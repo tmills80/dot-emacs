@@ -182,6 +182,8 @@ In both cases the files should provide a package which is loaded below
 ** Load personal lisp packages
 #+begin_src emacs-lisp :tangle init.el
   (require 'twem2-org-latex)
+  (require 'asdf)
+  (asdf-enable)
 #+end_src
 ** Load modules
 Each module ~provides~ a package
@@ -1023,7 +1025,7 @@ https://github.com/minad/tempel
     :hook
     ((dired-mode . denote-dired-mode))
     :config
-    (setq denote-directory (expand-file-name "~/org/notes"))
+    (setq denote-directory (expand-file-name "~/notes"))
     (setq denote-known-keywords '("emacs" "radio" "music" "ml" "maths"))
     (setq denote-infer-keywords t)
     (setq denote-sort-keywords t)
@@ -1040,19 +1042,37 @@ https://github.com/minad/tempel
 
 ** consult-notes for denote
 Use consult to select notes
+trying consult-denote
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el
   (use-package consult-notes
+    :disabled
     :ensure t
     :after (denote consult)
     :commands (consult-notes
                const-notes-search-in-all-notes)
     :bind (("C-c n f" . consult-notes))
     :config
-    (setq consult-notes-file-dir-sources
-          `(("Denote Notes" ?d ,(denote-directory))
-            ("Music Notes" ?m ,(concat (denote-directory) "music/"))
-  	  ("ML Course Notes" ?c ,(concat (denote-directory) "ml/"))))
-    (consult-notes-denote-mode 't))
+    (progn
+      (if (eq system-type 'darwin)
+  	(setq consult-notes-file-dir-sources nil)
+        (setq consult-notes-file-dir-sources
+              `(("Denote Notes" ?d ,(denote-directory))
+                ("Music Notes" ?m ,(concat (denote-directory) "music/"))
+  	      ("ML Course Notes" ?c ,(concat (denote-directory) "ml/")))))
+      (consult-notes-denote-mode 't)))
+#+end_src
+
+** consult-denote
+https://protesilaos.com/emacs/consult-denote
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el
+  (use-package consult-denote
+    :ensure t
+    :bind
+    (("C-c n f" . consult-denote-find)
+     ("C-c n g" . consult-denote-grep))
+    :config
+    (consult-denote-mode 1))
 #+end_src
 
 ** provide denote
@@ -1064,6 +1084,7 @@ Use consult to select notes
 ** avy
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-navigation.el :mkdirp yes
   (use-package avy
+    :pin melpa
     :ensure t
     :bind ("M-s s" . avy-goto-char-timer))
 #+end_src
