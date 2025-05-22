@@ -1,6 +1,5 @@
 #+title:   Emacs configuration
 #+author:  Tristan Mills
-#+l
 #+macro:    export-date (eval (format-time-string "%F %R %z" (current-time)))
 #+macro:    count-words (eval (count-words (point-min) (point-max)))
 #+STARTUP: overview
@@ -212,6 +211,7 @@ Each module ~provides~ a package
   (require 'twem2-trial)
   (require 'twem2-term)
   (require 'twem2-casual)
+  (require 'twem2-typescript)
 #+end_src
 * Essential configuration
 Things which are currently essential and will always be loaded
@@ -351,7 +351,7 @@ https://protesilaos.com/emacs/ef-themes
     ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
     (if (eq system-type 'gnu/linux)
         (ef-themes-select 'ef-spring)
-      (ef-themes-select 'ef-light)))
+      (ef-themes-select 'ef-cyprus)))
   ;; ef-cyprus duo-light ef-frost ef-light
 #+end_src
 
@@ -639,7 +639,7 @@ https://github.com/integral-dw/org-superstar-mode
 Automatically toggle latex fragments as I enter and leave them
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el
   (use-package org-fragtog
-    :requires (org auctex)
+    :after (org auctex)
     :ensure t
     :hook (org-mode . org-fragtog-mode))
 #+end_src
@@ -674,8 +674,7 @@ mu4e has icalendar support if I load it
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
   (use-package mu4e-icalendar
-    :after mu4e
-    :requires org
+    :after (mu4e org)
     :config
     (mu4e-icalendar-setup)
     (setq gnus-icalendar-org-capture-file "~/org/TODO.org"
@@ -707,10 +706,11 @@ This is just the config from the README as I get used to it.
     (use-package consult
       :ensure t
       :demand t
-      :requires org-mode
+      :after org
 
       ;; Replace bindings. Lazily loaded due by `use-package'.
-      :bind (;; C-c bindings (mode-specific-map)
+      :bind (
+  	   ;; C-c bindings (mode-specific-map)
              ("C-c h" . consult-history)
              ("C-c m" . consult-mode-command)
              ("C-c k" . consult-kmacro)
@@ -735,7 +735,7 @@ This is just the config from the README as I get used to it.
              ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
              ("M-g m" . consult-mark)
              ("M-g k" . consult-global-mark)
-             ("M-g i" . consult-imenu)
+             ([remap-imenu] . consult-imenu)
              ("M-i" . consult-imenu) ;; my own preferred binding for imenu
              ("M-g I" . consult-imenu-multi)
              ;; M-s bindings (search-map)
@@ -748,7 +748,7 @@ This is just the config from the README as I get used to it.
              ("M-s L" . consult-line-multi)
              ("M-s m" . consult-multi-occur)
              ("M-s k" . consult-keep-lines)
-             ("M-s u" . consult-focus-lines)
+             ("M-s u" . consult-focus-)
              ;; Isearch integration
              ("M-s e" . consult-isearch-history)
              :map isearch-mode-map
@@ -833,11 +833,12 @@ This is just the config from the README as I get used to it.
 ** orderless
 A custom completion style, like helm's style [[https://github.com/oantolin/orderless]]
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el
-  (use-package orderless
-    :ensure t
-    :custom
-    (completion-styles '(orderless basic))
-    (completion-category-overrides '((file (styles basic partial-completion)))))
+    (use-package orderless
+      :ensure t
+      :custom
+      (completion-styles '(orderless basic))
+      (completion-category-overrides '((file (styles basic partial-completion))
+  				     (eglot (styles basic partial-completion)))))
 #+end_src
 
 
@@ -1225,19 +1226,23 @@ Currently I just use eglot as is - I will need to do some configuration at some 
 some corfu customization (see https://github.com/minad/corfu/wiki)
 ** Configure eglot
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
-  (use-package eglot
-    :ensure t
-    :bind (:map eglot-mode-map
-                ("C-<return>" . eglot-code-actions))
-    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
-    :config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp")))
+    (use-package eglot
+      :ensure t
+      :after cape
+      ;; :init
+  ;;    (setq completion-category-overrides '((eglot (styles orderless))
+                                            (eglot-capf (styles orderless))
+      :bind (:map eglot-mode-map
+                  ("C-<return>" . eglot-code-actions))
+      :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
+      :config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp")))
 #+end_src
 
 ** override completion style
 https://github.com/minad/corfu/wiki
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
-(setq completion-category-overrides '((eglot (styles orderless))
-                                      (eglot-capf (styles orderless))))
+
+
 #+end_src
 ** Add my own Cape Super Capf for eglot
 See https://github.com/minad/corfu/wiki
@@ -1308,9 +1313,14 @@ Package for inserting $\LaTeX$ quickly. Usable in =org-mode=, =LaTeX-mode=, and 
 #+end_src
 * NEXT  terminal emulation module
 eat https://codeberg.org/akib/emacs-eat
+
+If the terminfo for eat is wrong then weird things will happen.
+On MacOS you must use the system provided =tic= program, not the homebrew one:
+in =~/.emacs.d/elpa/eat-xxx/= run =/usr/bin/tic -x terminfo.ti=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
   (use-package eat
-    :ensure t)
+    :ensure t
+    :bind ("C-x p s" . eat-project))
 
   (provide 'twem2-term)
 #+end_src
@@ -1353,7 +1363,7 @@ On Windows, the font will still have to be installed manually
 
   (use-package nerd-icons-corfu
     :ensure t
-    :requires corfu
+    :after corfu
     :config
     (add-to-list 'corfu-margin-formatters #'nerd-icons-corfu-formatter))
 
@@ -1380,9 +1390,11 @@ TODO: org-babel config
     (setq pipenv-projectile-after-switch-function
   	#'pipenv-projectile-after-switch-extended))
 
+  (require 'org)
+
   (org-babel-do-load-languages
-                           'org-babel-load-languages
-   (add-to-list 'org-babel-load-languages '(python . t)))
+     'org-babel-load-languages
+      '((python . t)))
 
 
   (provide 'twem2-python)
@@ -1400,6 +1412,7 @@ Launch IRB in emacs
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ruby.el
   (use-package rbenv
     :ensure t
+    :disabled
     :init
     (progn
       (if (eq system-type 'darwin)
@@ -1410,6 +1423,44 @@ Launch IRB in emacs
 ** provides
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ruby.el
   (provide 'twem2-ruby)
+#+end_src
+
+* TODO typescript module
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-typescript.el :mkdirp yes
+    (use-package typescript
+      :mode ("\\.ts\\'" . typescript-ts-mode))
+
+    (use-package eslint-flymake
+      :disabled true
+      :ensure t
+      :hook ((js-mode            . eslint-flymake-setup)
+             (js-jsx-mode        . eslint-flymake-setup)
+             (typescript-ts-mode . eslint-flymake-setup)
+             (tsx-ts-mode        . eslint-flymake-setup)))
+
+  ;; projects to ignore eslinting on save. I should package this up.
+  ;; name is (projec-name (project-current))
+  (setq twem2--eslint-ignore-projects '("salesforce-egress"))
+
+  (defun eslint-fix-file ()
+    (interactive)
+    (let ((project (project-name (project-current))))
+      (if (not (member project twem2--eslint-ignore-projects))
+  	(progn
+  	  (message "eslint --fixing the file" (buffer-file-name))
+  	  (shell-command (concat "eslint --fix " (buffer-file-name)))))))
+
+
+  (defun eslint-fix-file-and-revert ()
+      (interactive)
+      (eslint-fix-file)  (revert-buffer t t))
+
+
+    (add-hook 'typescript-ts-mode-hook
+    	  (lambda ()
+    	    (add-hook 'after-save-hook #'eslint-fix-file-and-revert nil 'make-it-local)))
+
+    (provide 'twem2-typescript)
 #+end_src
 * PDF module
 ** pdf-tools
@@ -1733,7 +1784,7 @@ I don't see any use of trailing whitespace.
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+END_SRC
 
-* Package management
+* package management
 I did try using =straight= for package management, but I didn't like it, and deciding the builtin =package.el= sufficed
 
 
@@ -1753,7 +1804,7 @@ I use =use-package= to manage package configuration and installation in most cas
 #+end_src
 
 
-* Miscellaneous key bindings
+* miscellaneous key bindings
 Just some key bindings which don't fit elsewhere
 
 ** Unset =C-z=
