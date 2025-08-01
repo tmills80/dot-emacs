@@ -10,3 +10,7 @@ org-mode
 ($bold "$\\mathbf{" p "}$")
 (dotp "\\vec{" p "}\\cdot\\vec{" p "}")
 (frac "\\frac{" p "}{" p "}")
+
+typescript-ts-mode
+
+(it "it(\"" (p "description") "\", async () => {" n> n> p q "});")
