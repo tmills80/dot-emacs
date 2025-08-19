@@ -162,9 +162,11 @@ This is included in the built in =use-package= as of Emacs 30, but is not in the
 Packages to pin to particular sources
 This doesn't actually appear to work for ~built-in~ but I want to document that I want the built-in version of  =use-package=
 #+begin_src emacs-lisp :tangle init.el
-  ;; Pinning to "built-in" doesn't seem to work, but I want to document the requirement
-  (setq package-pinned-packages
-        '((use-package . "built-in")))
+  ;(setq package-pinned-packages
+   ;     '((use-package . "built-in")))
+
+  ;; use latest dev version - see if it fixes issues with diminish
+  (setq package-pinned-packages '((use-package . "gnu-elpa-devel")))
 #+end_src
 ** install diminish for use with use-package
 #+begin_src emacs-lisp :tangle init.el
@@ -225,6 +227,7 @@ Each module ~provides~ a package
 Things which are currently essential and will always be loaded
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
   (use-package emacs
+    :ensure t
     :diminish auto-revert-mode
 #+end_src
 ** Bindings
@@ -1236,16 +1239,17 @@ Currently I just use eglot as is - I will need to do some configuration at some 
 some corfu customization (see https://github.com/minad/corfu/wiki)
 ** Configure eglot
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
-    (use-package eglot
-      :ensure t
-      :after cape
-      :bind (:map eglot-mode-map
-                  ("C-<return>" . eglot-code-actions))
-      :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
-      :config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp")))
+      (use-package eglot
+        :ensure t
+        :after cape
+        :bind (:map eglot-mode-map
+                    ("C-<return>" . eglot-code-actions))
+        :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
+        ;:config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp"))
+        )
 
 
-;;  (require 'eglot-config)
+  ;;  (require 'eglot-config)
 #+end_src
 
 ** override completion style
