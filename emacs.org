@@ -87,7 +87,7 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
   (setq inhibit-startup-echo-area-message "tristan") ; read the docstring
 
   (setq inhibit-startup-buffer-menu t)
-#+end_src
+ #+end_src
 
 
 ** Turn off native compilation warnings
@@ -98,6 +98,12 @@ Should this be in =init.el=?
 
 * The main Emacs initialization file: =init.el=
 ** TODO options to enable or disable loading of modules
+** Variables to select based on home vs work
+#+begin_src emacs-lisp :tangle init.el
+    (defvar twem2--is-work nil "Is this running on a work computer. I only use a Mac at work")
+    (when (eq system-type 'darwin)
+      (setq twem2--is-work 't))
+#+end_src
 ** Confirm kill
 I have a habit of fat fingering =C-x C-c=
 #+begin_src emacs-lisp :tangle init.el
@@ -166,12 +172,12 @@ This doesn't actually appear to work for ~built-in~ but I want to document that 
    ;     '((use-package . "built-in")))
 
   ;; use latest dev version - see if it fixes issues with diminish
-  (setq package-pinned-packages '((use-package . "gnu-elpa-devel")))
+  ;(setq package-pinned-packages '((use-package . "gnu-elpa-devel")))
 #+end_src
 ** install diminish for use with use-package
 #+begin_src emacs-lisp :tangle init.el
-        (use-package diminish
-          :ensure t)
+  (use-package diminish
+    :ensure t)
 #+end_src
 ** TODO all those basic settings
 ** Add module and personal lisp sources to the load path
@@ -195,33 +201,35 @@ In both cases the files should provide a package which is loaded below
 ** Load modules
 Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
-  (require 'twem2-essentials)
-  (require 'twem2-wsl2)
-  (require 'twem2-theme)
-  (require 'twem2-org)
-  (when (eq system-type 'gnu/linux)
-    (require 'twem2-email))
-  (require 'twem2-completion)
-  (require 'twem2-denote)
-  (require 'twem2-window)
-  (require 'twem2-bookmarks)
-  (require 'twem2-dired)
-  (require 'twem2-treesitter)
-  (require 'twem2-latex)
-  ; (require 'twem2-web-dev)
-  (require 'twem2-eglot)
-  (require 'twem2-vc)
-  (require 'twem2-markdown)
-  (require 'twem2-icons)
-  (require 'twem2-python)
-  (require 'twem2-ruby)
-  (require 'twem2-pdf)
-  (require 'twem2-trial)
-  (require 'twem2-term)
-  (require 'twem2-casual)
-  (require 'twem2-typescript)
-  (require 'twem2-programming)
-  (require 'twem2-project)
+    (require 'twem2-essentials)
+    (require 'twem2-wsl2)
+    (require 'twem2-theme)
+    (require 'twem2-org)
+    (unless twem2--is-work
+      (require 'twem2-email))
+    (require 'twem2-completion)
+    (require 'twem2-denote)
+    (require 'twem2-window)
+    (require 'twem2-bookmarks)
+    (require 'twem2-dired)
+    (require 'twem2-treesitter)
+    (require 'twem2-latex)
+    ; (require 'twem2-web-dev)
+    (require 'twem2-eglot)
+    (require 'twem2-vc)
+    (require 'twem2-markdown)
+    (require 'twem2-icons)
+    (require 'twem2-python)
+    (require 'twem2-ruby)
+    (require 'twem2-pdf)
+    (require 'twem2-trial)
+    (require 'twem2-term)
+    (require 'twem2-casual)
+    (require 'twem2-typescript)
+    (require 'twem2-programming)
+    (require 'twem2-project)
+    (unless twem2--is-work
+      (require 'twem2-elfeed))
 #+end_src
 * Essential configuration
 Things which are currently essential and will always be loaded
@@ -389,9 +397,9 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
     :config
     (setq fontaine-presets
           '((small
-             :default-family "Fira Code Retina"
+             :default-family "Fira Code"
              :default-height 100
-             :fixed-pitch-family "Fira Code Retina"
+             :fixed-pitch-family "Fira Code"
              :fixed-pitch-height 1.0
              :variable-pitch-family "ETBembo"
              :variable-pitch-height 1.1
@@ -700,8 +708,8 @@ see https://github.com/alphapapa/activities.el/issues/55
 https://github.com/djcb/mu/pull/2672/ fixes - should be in next release
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
-(define-advice mu4e--view-render-buffer (:after (&rest _) unset-bookmark-make-record-function)
-  (kill-local-variable 'bookmark-make-record-function))
+;(define-advice mu4e--view-render-buffer (:after (&rest _) unset-bookmark-make-record-function)
+;  (kill-local-variable 'bookmark-make-record-function))
 #+end_src
 ** provides
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el
@@ -1524,26 +1532,34 @@ Launch IRB in emacs
 * TODO project module
 Customization or =project.el=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-project.el :mkdirp yes
-  ;; use consult-project-buffer by default
-  (defun twem2/switch-to-buffer (&optional fallback)
-    (interactive "P")
-    (if fallback
-        (consult-buffer)
-      (consult-project-buffer)))
+  ;; consult-ripgrep in project root
+  ;; see project-find-dir
+  (defun custom/project--find-dirs (project)
+    (let* ((all-files (project-files project))
+  	 (completion-ignore-case read-file-name-completion-ignore-case)
+  	 (all-dirs (mapcar #'file-name-directory all-files)))
+      (project--read-file-name
+       project "ripgrep directory"
+       ;; Some completion UIs show duplicates.
+       (delete-dups all-dirs)
+       nil 'file-name-history
+       (and default-directory
+            (project--find-default-from default-directory project)))))
 
-  (use-package project
-    :after consult
-    :bind ("C-x b" . twem2/switch-to-buffer)
-    :custom
-    (project-switch-commands
-     '((project-find-file "Find file")
-       (consult-project-buffer "Find buffer")
-       (project-find-regexp "Find regexp")
-       (project-find-dir "Find directory")
-       (eat-project "Shell")
-       (magit-project-status "Magit" "m"))))
 
-  (provide 'twem2-project)
+
+    (use-package project
+      :after consult
+      :custom
+      (project-switch-commands
+       '((project-find-file "Find file")
+         (consult-project-buffer "Find buffer")
+         (project-find-regexp "Find regexp")
+         (project-find-dir "Find directory")
+         (eat-project "Shell")
+         (magit-project-status "Magit" "m"))))
+
+    (provide 'twem2-project)
 #+end_src
 
 * PDF module
@@ -1593,6 +1609,40 @@ transient menu for avy (maybe I'll use it more)
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
   (provide 'twem2-casual)
 #+end_src
+* elfeed module
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-elfeed.el
+    (use-package elfeed
+      :ensure t
+      :unless twem2--is-work
+      :custom
+      (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
+      (elfeed-show-entry-switch 'display-buffer))
+
+
+        ;; use org to configure
+    (use-package elfeed-org
+      :ensure t
+      :unless twem2--is-work
+      :after (elfeed org)
+      :config
+      (elfeed-org)
+      (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
+
+    ;; Use fork which adds dates to the header linnne
+    (use-package elfeed-goodies
+      :ensure t
+      :unless twem2--is-work
+      :vc (:url "https://github.com/jeetelongname/elfeed-goodies.git"
+  	      :branch "master")
+      :after elfeed
+      :custom
+      (elfeed-goodies/entry-pane-position 'bottom)
+      :config
+      (elfeed-goodies/setup))
+
+    (provide 'twem2-elfeed)
+#+end_src
+
 * testing module
 Anything I'm trying out
 
@@ -1662,7 +1712,8 @@ eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
-** TODO emacs everywhere
+**
+TODO emacs everywhere
 https://github.com/tecosaur/emacs-everywhere
 
 Running on WSL2 means I need to work out how to copy from Windows if in a Windows program.
@@ -2532,12 +2583,12 @@ Numeric message types can be found in the spec, or [[https://modern.ircdocs.hors
   (use-package erc
     :custom
     (erc-autojoin-channels-alist
-     '((Libera.Chat "#org-mode" "#emacs-beginners" "#emacs-til" "#emacs")))
+     '((Libera.Chat "#org-mode" "#emacs-beginners" "#emacs-til" "#emacs" "#systemcrafters")))
     (erc-hide-list '("JOIN" "PART" "QUIT"))
     (erc-lurker-hide-list '("JOIN" "PART" "QUIT"))
     (erc-track-exclude-type '("JOIN" "MODE" "NICK" "PART" "QUIT", "333", "353"))
     :config
-    (add-to-list 'erc-modules 'track))
+    (add-to-list 'erc-modules 'track 'erc))
 #+end_src
 
 This code from [[https://www.emacswiki.org/emacs/ErcBar]] puts a bar at the last read point in the buffer
