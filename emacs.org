@@ -1,4 +1,4 @@
-#+title:   Emacs configuration
+#+TITLE:    configuration
 #+author:  Tristan Mills
 #+macro:    export-date (eval (format-time-string "%F %R %z" (current-time)))
 #+macro:    count-words (eval (count-words (point-min) (point-max)))
@@ -61,8 +61,11 @@ You'll notice quite a few I use
 Setting =package-enable-at-startup= to non-nil makes installed packages available in =init.el=
 
 #+begin_src emacs-lisp :tangle early-init.el
-;; Initialise installed packages
-(setq package-enable-at-startup t)
+  ;; Initialise installed packages
+  (setq package-enable-at-startup t)
+
+    (setq use-package-always-demand t)
+  (setq use-package-verbose t)
 #+end_src
 
 ** Initial frame settings
@@ -170,10 +173,10 @@ This doesn't actually appear to work for ~built-in~ but I want to document that 
 #+end_src
 ** install diminish for use with use-package
 #+begin_src emacs-lisp :tangle init.el
-        (use-package diminish
-          :ensure t)
+;;        (use-package diminish
+;;          :ensure t)
 #+end_src
-** TODO all those basic settings
+** TODO all those basic settingsg
 ** Add module and personal lisp sources to the load path
 Here I add two directories in my configuration directory (typically =~/.emacs.d/=) to the load-path
 - =twem2-config-modules= is the directory where the configuration modules are kept
@@ -195,40 +198,45 @@ In both cases the files should provide a package which is loaded below
 ** Load modules
 Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
-  (require 'twem2-essentials)
-  (require 'twem2-wsl2)
-  (require 'twem2-theme)
-  (require 'twem2-org)
-  (when (eq system-type 'gnu/linux)
-    (require 'twem2-email))
-  (require 'twem2-completion)
-  (require 'twem2-denote)
-  (require 'twem2-window)
-  (require 'twem2-bookmarks)
-  (require 'twem2-dired)
-  (require 'twem2-treesitter)
-  (require 'twem2-latex)
-  ; (require 'twem2-web-dev)
-  (require 'twem2-eglot)
-  (require 'twem2-vc)
-  (require 'twem2-markdown)
-  (require 'twem2-icons)
-  (require 'twem2-python)
-  (require 'twem2-ruby)
-  (require 'twem2-pdf)
-  (require 'twem2-trial)
-  (require 'twem2-term)
-  (require 'twem2-casual)
-  (require 'twem2-typescript)
-  (require 'twem2-programming)
-  (require 'twem2-project)
+  ;; TODO make a proper module if I like it
+  (use-package emacs-everywhere
+    :ensure t)
+
+    (require 'twem2-essentials)
+    (require 'twem2-wsl2)
+    (require 'twem2-theme)
+    (require 'twem2-org)
+    (when (eq system-type 'gnu/linux)
+      (require 'twem2-email))
+    (require 'twem2-completion)
+    (require 'twem2-denote)
+    (require 'twem2-window)
+    (require 'twem2-bookmarks)
+    (require 'twem2-dired)
+    (require 'twem2-treesitter)
+    (require 'twem2-latex)
+    ; (require 'twem2-web-dev)
+    (require 'twem2-eglot)
+    (require 'twem2-vc)
+    (require 'twem2-markdown)
+    (require 'twem2-icons)
+    (require 'twem2-python)
+    (require 'twem2-ruby)
+    (require 'twem2-pdf)
+    (require 'twem2-trial)
+    (require 'twem2-term)
+    (require 'twem2-casual)
+    (require 'twem2-typescript)
+    (require 'twem2-programming)
+    (require 'twem2-project)
+  (require 'twem2-ai)
 #+end_src
 * Essential configuration
 Things which are currently essential and will always be loaded
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
   (use-package emacs
     :ensure t
-    :diminish auto-revert-mode
+;;    :diminish auto-revert-mode
 #+end_src
 ** Bindings
 Rebind =M-i= to =imenu=
@@ -252,6 +260,10 @@ Use visible bell rather than making a noise (could turn off completely?)
 *** highlight the current error
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
 (next-error-message-highlight t)
+#+end_src
+*** Minor modes to hide
+#+begin_src emacs-lisp :tangle  twem2-config-modules/twem2-essentials.el
+(mode-line-collapse-minor-modes-to)
 #+end_src
 ** emacs variables and other config
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
@@ -284,7 +296,7 @@ Use visible bell rather than making a noise (could turn off completely?)
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
   (use-package which-key
     :ensure t
-    :diminish which-key-mode
+;    :diminish which-key-mode
     :config
     (setq which-key-idle-delay 0.3)
     (setq which-key-popup-type 'minibuffer)
@@ -361,8 +373,8 @@ https://protesilaos.com/emacs/ef-themes
           ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
     ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
     (if (eq system-type 'gnu/linux)
-        (ef-themes-select 'ef-spring)
-      (ef-themes-select 'ef-cyprus)))
+        (modus-themes-select 'ef-spring)
+      (modus-themes-select 'ef-cyprus)))
   ;; ef-cyprus duo-light ef-frost ef-light
 #+end_src
 
@@ -424,13 +436,22 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
   				     (fontaine--get-preset-property fontaine-current-preset :default-height)
   				     100.0))))))
 #+end_src
-** variable pitch mode
+** TODO variable pitch mode
+This seems the wrong way to do this
+
 I want variable pitch in modes where I am focussed on prose
 I do wish info mode had better handling of
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
-  (use-package variable-pitch
-    :hook (text-mode . variable-pitch-mode))
+      (defun turnoff-variable-pitch ()
+        (variable-pitch-mode nil))
+
+      (defun turnon-variable-pitch ()
+        (variable-pitch-mode))
+
+      (use-package emacs
+        :hook ((text-mode . turnon-variable-pitch)
+      	 (yaml-ts-mode . turnoff-variable-pitch)))
 #+end_src
 ** resize text across all buffers
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
@@ -506,7 +527,7 @@ Some of the =:config= section is customizable, so should probably be in =:custom
              ("C-c c" . org-capture)
     	 :map org-mode-map
     	 ("C-c i" . twem2-org-latex-insert-brackets))
-      :diminish org-indent-mode
+;      :diminish org-indent-mode
       :custom
       (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
       ;; make font bigger in latex preview
@@ -1229,6 +1250,28 @@ This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-g
 
 ** TODO combobulate
 https://www.masteringemacs.org/article/combobulate-intuitive-structured-navigation-treesitter
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el :mkdirp yes
+    (use-package combobulate
+      :vc (:url https://github.com/mickeynp/combobulate.git))
+#+end_src
+
+** treesit-fold
+https://github.com/emacs-tree-sitter/treesit-fold
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el
+  (use-package treesit-fold
+    :ensure t
+    :vc (:url https://github.com/emacs-tree-sitter/treesit-fold.git)
+    :bind (:map treesit-fold-mode-map
+  	      ("C-c C-f f" . treesit-fold-close-all)
+  	      ("C-c C-f a" . treesit-fold-open-all)
+  	      ("C-c C-f c" . treesit-fold-close)
+  	      ("C-c C-f o" . treesit-fold-open)
+  	      ("C-c C-f t" . treesit-fold-toggle))
+    :config
+    (setq treesit-fold-line-count-show t)
+    (global-treesit-fold-mode))
+#+end_src
+
 ** provide twem2-treesitter
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el
   (provide 'twem2-treesitter)
@@ -1326,15 +1369,49 @@ Package for inserting $\LaTeX$ quickly. Usable in =org-mode=, =LaTeX-mode=, and 
   (provide 'twem2-web-dev)
 #+end_src
 * NEXT  terminal emulation module
+** eat
 eat https://codeberg.org/akib/emacs-eat
+
+This seems to be unmaintained now, and has issues with Docker
 
 If the terminfo for eat is wrong then weird things will happen.
 On MacOS you must use the system provided =tic= program, not the homebrew one:
 in =~/.emacs.d/elpa/eat-xxx/= run =/usr/bin/tic -x terminfo.ti=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
-  (use-package eat
+    (use-package eat
+      :ensure t
+      ;:bind ("C-x p s" . eat-project)
+      )
+
+
+#+end_src
+** TODO vterm
+:LOGBOOK:
+- State "TODO"       from              [2025-09-09 Tue 13:46]
+:END:
+needs to compile a C library
+requires CMake to compile
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
+  (use-package vterm
     :ensure t
-    :bind ("C-x p s" . eat-project))
+    :config
+    (defun vterm-project (&optional arg)
+      "Start vterm in the current project's root directory.
+
+  Start a new Vterm session, or switch to an already active session.
+
+  With a nonnumeric prefix arg, create a new session.
+
+  With a numeric prefix ARG (like
+  \\[universal-argument] 42 \\[vterm-project]), switch to the session with
+  that number, or create it if it doesn't already exist."
+      (interactive "P")
+      (require 'project)
+      (let* ((default-directory-ish (project-root (project-current t)))
+      	   (vterm-buffer-name (project-prefixed-buffer-name "vterm")))
+        (vterm arg)))
+    :bind ("C-x p s" . vterm-project))
 
   (provide 'twem2-term)
 #+end_src
@@ -1390,13 +1467,16 @@ On Windows, the font will still have to be installed manually
 #+end_src
 * TODO general programming module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-programming.el
-  (use-package smartparens
-    :ensure t
-    :hook (prog-mode text-mode markdown-mode)
-    :config
-    (require 'smartparens-config))
+   (use-package smartparens
+     :ensure t
+     :hook (prog-mode text-mode markdown-mode)
+     :config
+     (require 'smartparens-config))
 
-  (provide 'twem2-programming)
+  (use-package emacs
+    :hook (typescript-ts-mode . subword-mode))
+
+   (provide 'twem2-programming)
 #+end_src
 
 
@@ -1454,7 +1534,7 @@ Launch IRB in emacs
 
 * TODO typescript module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-typescript.el :mkdirp yes
-      (use-package typescript
+      (use-package emacs
         :mode ("\\.ts\\'" . typescript-ts-mode))
 
       (use-package eslint-flymake
@@ -1508,6 +1588,8 @@ Launch IRB in emacs
 
     (use-package jest-test-mode
       :ensure t
+      :custom ((jest-test-options '("--color" "--projects" "src" "--runInBand" "--detectOpenHandles"))
+  	     (jest-test-command-string "source .secrets.env && npx %s jest %s %s"))
       :hook (js-mode typescript-ts-mode))
 
     (provide 'twem2-typescript)
@@ -1533,14 +1615,14 @@ Customization or =project.el=
 
   (use-package project
     :after consult
-    :bind ("C-x b" . twem2/switch-to-buffer)
+    ;; :bind ("C-x b" . twem2/switch-to-buffer)
     :custom
     (project-switch-commands
      '((project-find-file "Find file")
        (consult-project-buffer "Find buffer")
        (project-find-regexp "Find regexp")
        (project-find-dir "Find directory")
-       (eat-project "Shell")
+       (vterm-project "Shell")
        (magit-project-status "Magit" "m"))))
 
   (provide 'twem2-project)
@@ -1569,6 +1651,7 @@ casual provides transient menus for many modes, exposing the functionality in a 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
   (use-package casual
     :ensure t
+    :after (calc ibuffer)
     :bind (:map calc-mode-map ("C-o" . casual-calc-tmenu)
   	 :map dired-mode-map ("C-o" . casual-dired-tmenu)
   	 :map isearch-mode-map ("C-o" . casual-isearch-tmenu)
@@ -1718,6 +1801,35 @@ only here for quick adding
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
 (provide 'twem2-trial)
+#+end_src
+* TODO AI module
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
+  ;; claude-code is needed for ai-code-interface
+
+  ;; install required inheritenv dependency:
+  (use-package inheritenv
+    :ensure t
+    :demand t
+    :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
+
+  (use-package claude-code
+    :ensure t
+    :demand t
+    :after inheritenv
+    :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest))
+
+  (use-package ai-code-interface
+    :ensure t
+    :demand t
+    :after claude-code
+    :vc (:url "https://github.com/tninja/ai-code-interface.el" :rev :newest)
+    :bind ("C-c i" . ai-code-menu)
+    :config
+    (ai-code-set-backend 'codex)
+    (ai-code-magit-setup-transients)
+    (setopt codex-cli-program "/opt/homebrew/bin/codex"))
+
+  (provide 'twem2-ai)
 #+end_src
 * ------ below here is not yet brought in ------
 
@@ -1961,8 +2073,8 @@ s
 ** variable-pitch-mode
 Modes to use variable pitch mode in:
 #+begin_src emacs-lisp
-    (use-package variable-pitch
-      :ensure nil
+    (use-package emacs
+//      :ensure nil
       :hook (org-mode . variable-pitch-mode))
 #+end_src
 
@@ -2375,7 +2487,7 @@ This looks useful, but I'm not using it yet, so disabled for now
 Install typescript mode as it is not included, despite typescript-ts-mode being included
 This will set up ~auto-mode-alist~ for me too, which can be remapped if treesit is available
 #+begin_src emacs-lisp
-(use-package typescript-mode)
+;;(use-package typescript-mode)
 #+end_src
 
 
