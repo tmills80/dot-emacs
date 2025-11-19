@@ -50,6 +50,9 @@ You'll notice quite a few I use
 
 * Early initialization of Emacs
 =early-init.el= is run early in the Emacs startup process.  See [[info:emacs#Early Init File][emacs#Early Init File]]
+#+begin_src emacs-lisp :tangle early-init.el
+  ;;; ...  -*- lexical-binding: t -*-
+#+end_src
 
 ** TODO fix for mac path
 #+begin_src emacs-lisp :tangle early-init.el
@@ -100,7 +103,12 @@ Should this be in =init.el=?
 #+end_src
 
 * The main Emacs initialization file: =init.el=
+
+#+begin_src emacs-lisp :tangle init.el
+;;; ...  -*- lexical-binding: t -*-
+#+end_src
 ** TODO options to enable or disable loading of modules
+
 ** Variables to select based on home vs work
 #+begin_src emacs-lisp :tangle init.el
     (defvar twem2--is-work nil "Is this running on a work computer. I only use a Mac at work")
@@ -182,7 +190,7 @@ This doesn't actually appear to work for ~built-in~ but I want to document that 
 ;;        (use-package diminish
 ;;          :ensure t)
 #+end_src
-** TODO all those basic settingsg
+** TODO all those basic settings
 ** Add module and personal lisp sources to the load path
 Here I add two directories in my configuration directory (typically =~/.emacs.d/=) to the load-path
 - =twem2-config-modules= is the directory where the configuration modules are kept
@@ -204,42 +212,48 @@ In both cases the files should provide a package which is loaded below
 ** Load modules
 Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
-n  ;; TODO make a proper module if I like it
+  ;; TODO make a proper module if I like it
   (use-package emacs-everywhere
     :ensure t)
 
-    (require 'twem2-essentials)
-    (require 'twem2-wsl2)
-    (require 'twem2-theme)
-    (require 'twem2-org)
-    (unless twem2--is-work
-      (require 'twem2-email))
-    (require 'twem2-completion)
-    (require 'twem2-denote)
-    (require 'twem2-window)
-    (require 'twem2-bookmarks)
-    (require 'twem2-dired)
-    (require 'twem2-treesitter)
-    (require 'twem2-latex)
-    ; (require 'twem2-web-dev)
-    (require 'twem2-eglot)
-    (require 'twem2-vc)
-    (require 'twem2-markdown)
-    (require 'twem2-icons)
-    (require 'twem2-python)
-    (require 'twem2-ruby)
-    (require 'twem2-pdf)
-    (require 'twem2-trial)
-    (require 'twem2-term)
-    (require 'twem2-casual)
-    (require 'twem2-typescript)
-    (require 'twem2-programming)
-    (require 'twem2-project)
-    (unless twem2--is-work
-      (require 'twem2-elfeed))
-  (require 'twem2-ai)
+  (require 'twem2-essentials)
+  (require 'twem2-wsl2)
+  (require 'twem2-theme)
+  (require 'twem2-org)
+  (unless twem2--is-work
+    (require 'twem2-email))
+  (require 'twem2-completion)
+  (require 'twem2-denote)
+  (require 'twem2-window)
+;;  (require 'twem2-bookmarks)
+  (require 'twem2-dired)
+  (require 'twem2-treesitter)
+  (require 'twem2-latex)
+  ;; (require 'twem2-web-dev)
+  (require 'twem2-eglot)
+  (require 'twem2-vc)
+  (require 'twem2-markdown)
+  (require 'twem2-icons)
+  (require 'twem2-python)
+  (require 'twem2-ruby)
+  (require 'twem2-pdf)
+  (require 'twem2-trial)
+  (require 'twem2-term)
+  (require 'twem2-casual)
+  (require 'twem2-typescript)
+  (require 'twem2-programming)
+  (require 'twem2-project)
+  (unless twem2--is-work
+    (require 'twem2-elfeed))
+  (unless twem2--is-work
+    (require 'twem2-irc))
+  (if twem2--is-work
+    (require 'twem2-ai))
 #+end_src
 * Essential configuration
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+;;; ...  -*- lexical-binding: t -*-
+#+end_src
 Things which are currently essential and will always be loaded
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
   (use-package emacs
@@ -270,8 +284,11 @@ Use visible bell rather than making a noise (could turn off completely?)
 (next-error-message-highlight t)
 #+end_src
 *** Minor modes to hide
+Requires emacs 31+
 #+begin_src emacs-lisp :tangle  twem2-config-modules/twem2-essentials.el
-(mode-line-collapse-minor-modes-to)
+    (setq mode-line-collapse-minor-modes
+  	'(eldoc-mode buffer-face-mode auto-revert-mode org-indent-mode smartparens-mode))
+    (setq mode-line-collapse-minor-modes-to "")
 #+end_src
 ** emacs variables and other config
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
@@ -346,18 +363,19 @@ There are still some issues
 
  [2024-04-11 Thu] WSLENV is not being set in tmux, so I've added checks for the WSLInterop files, one of which /should/ exist
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-wsl2.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
   (when (and (eq system-type 'gnu/linux)
-  	     (or ;(getenv "WSLENV")
-  		 (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop")
-  		 (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop-late")))
-    ;; Make emacs use default Windows browser
-    (let ((cmd-exe "/mnt/c/Windows/System32/cmd.exe")
-  	  (cmd-args '("/c" "start")))
-      (when (file-exists-p cmd-exe)
-  	(setq browse-url-generic-program cmd-exe
-  	      browse-url-generic-args cmd-args
-  	      browse-url-browser-function 'browse-url-generic
-  	      search-web-default-browser 'browse-url-generic))))
+  	   (or ;(getenv "WSLENV")
+  	    (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop")
+  	    (file-exists-p "/proc/sys/fs/binfmt_misc/WSLInterop-late")))
+  ;; Make emacs use default Windows browser
+  (let ((cmd-exe "/mnt/c/Windows/System32/cmd.exe")
+        (cmd-args '("/c" "start")))
+    (when (file-exists-p cmd-exe)
+      (setq browse-url-generic-program cmd-exe
+  	  browse-url-generic-args cmd-args
+  	  browse-url-browser-function 'browse-url-generic
+  	  search-web-default-browser 'browse-url-generic))))
 #+end_src
 ** Provide the WSL2 module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-wsl2.el
@@ -370,6 +388,7 @@ ef-themes has several very nice themes
 https://protesilaos.com/emacs/ef-themes
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package ef-themes
     :ensure t
     :config
@@ -380,7 +399,7 @@ https://protesilaos.com/emacs/ef-themes
     (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
           ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
     ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
-    (if (eq system-type 'gnu/linux)
+    (if (not twem2--is-work)
         (modus-themes-select 'ef-spring)
       (modus-themes-select 'ef-cyprus)))
   ;; ef-cyprus duo-light ef-frost ef-light
@@ -528,122 +547,122 @@ This could do with being split up somehow.
 Some of the =:config= section is customizable, so should probably be in =:custom= in case code is run on setting (or the =setopt= macro could be used)
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el :mkdirp yes
-    (use-package org
-      :ensure t
-      :bind (("C-c l" . org-store-link)
-             ("C-c a" . org-agenda)
-             ("C-c c" . org-capture)
-    	 :map org-mode-map
-    	 ("C-c i" . twem2-org-latex-insert-brackets))
-;      :diminish org-indent-mode
-      :custom
-      (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
-      ;; make font bigger in latex preview
-      (org-format-latex-options '(:scale 1.0))
-      ;; Add packages to LaTeX fragments
-      (org-latex-packages-alist'(("" "multirow" t nil)
-  			       ("" "mathtools" t nil)))
-      ;; use dvisvgm to generate fragments - it works better
-      (org-preview-latex-default-process 'dvisvgm)
-      ;; load shell babel
-      (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
-      :config
-      ;; Logging
-      (setq org-log-into-drawer t
-            org-log-reschedule 'time
-            org-log-redeadline 'time)
-      ;; TODO keywords
-      (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
-                                          "TODO(t!/!)"
-                                          "NEXT(n!/!)"
-                                          "STARTED(s!)"
-                                          "WAITING(w@/!)"
-                                          "|"
-                                          "DONE(d!/!)"
-                                          "CANCELLED(c@/!)")
-                                (type "PROJECT" "|" "DONE")))
-      ;; ordering of tasks
-      (setq org-enforce-todo-dependencies t
-            org-track-ordered-property-with-tag t
-            org-agenda-dim-blocked-tasks t
-            org-enforce-todo-checkbox-dependencies t)
-      ;; Capture templates
-      (setq org-capture-templates
-            `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
-               ,(concat "* %?\n"
-                        ":PROPERTIES:\n"
-                        ":CREATED: %U\n"
-                        ":END:\n\n")
-               :empty-lines 1)
-              ("t" "TODO" entry (file+headline "~/org/TODO.org" "Unreviewed")
-               ,(concat "* TODO %^{Title}\n"
-                        ":PROPERTIES:\n"
-                        ":CREATED: %U\n"
-                        ":END:\n\n"
-                        "%?"))
-              ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
-                                                 ,(format-time-string "%Y")
-                                                 ,(format-time-string "%Y-%m"))
-               ,(concat "* %t [/]\n"
-                        "  - [ ] %?"))
-              ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
-               ,(concat "* %^{Title|%:description}\n"
-                        "  Source: %u, %c\n\n"
-                        "  %i%?"))
-              ))
-      ;; Source editing popup window
-      ; TODO commenting out to see if this is still what I want
-      ;  (setq org-src-window-setup 'plain)
-      ;; Catch accidental deletions of whole subtrees
-      (setq org-fold-catch-invisible-edits 'smart)
-      ;; Only count direct children of check boxes
-      (setq org-checkbox-hierarchical-statistics t)
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package org
+    :ensure t
+    :bind (("C-c l" . org-store-link)
+           ("C-c a" . org-agenda)
+           ("C-c c" . org-capture)
+        	 :map org-mode-map
+        	 ("C-c i" . twem2-org-latex-insert-brackets))
+    ;;      :diminish org-indent-mode
+    :custom
+    (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
+    ;; make font bigger in latex preview
+    (org-format-latex-options '(:scale 1.0))
+    ;; Add packages to LaTeX fragments
+    (org-latex-packages-alist'(("" "multirow" t nil)
+      			     ("" "mathtools" t nil)))
+    ;; use dvisvgm to generate fragments - it works better
+    (org-preview-latex-default-process 'dvisvgm)
+    ;; load shell babel
+    (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
+    :config
+    ;; Logging
+    (setq org-log-into-drawer t
+          org-log-reschedule 'time
+          org-log-redeadline 'time)
+    ;; TODO keywords
+    (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
+                                        "TODO(t!/!)"
+                                        "NEXT(n!/!)"
+                                        "STARTED(s!)"
+                                        "WAITING(w@/!)"
+                                        "|"
+                                        "DONE(d!/!)"
+                                        "CANCELLED(c@/!)")
+                              (type "PROJECT" "|" "DONE")))
+    ;; ordering of tasks
+    (setq org-enforce-todo-dependencies t
+          org-track-ordered-property-with-tag t
+          org-agenda-dim-blocked-tasks t
+          org-enforce-todo-checkbox-dependencies t)
+    ;; Capture templates
+    (setq org-capture-templates
+          `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
+             ,(concat "* %?\n"
+                      ":PROPERTIES:\n"
+                      ":CREATED: %U\n"
+                      ":END:\n\n")
+             :empty-lines 1)
+            ("t" "TODO" entry (file+headline "~/org/TODO.org" "Unreviewed")
+             ,(concat "* TODO %^{Title}\n"
+                      ":PROPERTIES:\n"
+                      ":CREATED: %U\n"
+                      ":END:\n\n"
+                      "%?"))
+            ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
+                                               ,(format-time-string "%Y")
+                                               ,(format-time-string "%Y-%m"))
+             ,(concat "* %t [/]\n"
+                      "  - [ ] %?"))
+            ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
+             ,(concat "* %^{Title|%:description}\n"
+                      "  Source: %u, %c\n\n"
+                      "  %i%?"))))
+    ;; Source editing popup window
+    ;; TODO commenting out to see if this is still what I want
+    ;;  (setq org-src-window-setup 'plain)
+    ;; Catch accidental deletions of whole subtrees
+    (setq org-fold-catch-invisible-edits 'smart)
+    ;; Only count direct children of check boxes
+    (setq org-checkbox-hierarchical-statistics t)
 
-      ;;; Refiling
-      ;; Set targets to all agenda files
-      (setq org-refile-targets
-            '((nil :maxlevel . 9)
-              (org-agenda-files :maxlevel . 9)))
-      ;; Allow making top level tasks (start targets with filename)
-      (setq org-refile-use-outline-path 'file)
-      ;; Give complete targets in completion - better for company setup
-      (setq org-outline-path-complete-in-steps nil)
+    ;;; Refiling
+    ;; Set targets to all agenda files
+    (setq org-refile-targets
+          '((nil :maxlevel . 9)
+            (org-agenda-files :maxlevel . 9)))
+    ;; Allow making top level tasks (start targets with filename)
+    (setq org-refile-use-outline-path 'file)
+    ;; Give complete targets in completion - better for company setup
+    (setq org-outline-path-complete-in-steps nil)
 
-      ;;; Styling
-      ;; Indented mode (when not turned off explicitly)
-      (setq org-startup-indented t)
-      ;; Change the ellipsis
-      (setq org-ellipsis "⤵")
-      ;; Custom agenda
-        (setq org-agenda-custom-commands
-            '(("m" "Agenda"
-               (
-                (todo "STARTED"
-                      ((org-agenda-overriding-header "In progress")))
-                (agenda ""
-                        ((org-agenda-overriding-header "Daily Agenda")
-                         (org-agenda-span 1)
-                         (org-deadline-warning-days 0)
-                         (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
-                         ))
-                (agenda ""
-                        ((org-agenda-overriding-header "Next three days")
-                         (org-agenda-start-on-weekday nil)
-                         (org-agenda-start-day "+1d")
-                         (org-agenda-span 3)
-                         (org-deadline-warning-days 0)))
-                (agenda ""
-                        ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
-                         (org-agenda-span 14)
-                         (org-agenda-show-all-dates nil)
-                         (org-agenda-time-grid nil)
-                         (org-deadline-warning-days 0)
-                         (org-agenda-entry-types '(:deadline))))
-                (todo "NEXT"
-                      ((org-agenda-overriding-header "Tasks to do next")))
-                (todo "WAITING"
-                      ((org-agenda-overriding-header "Tasks on hold")))))))
-      )
+    ;;; Styling
+    ;; Indented mode (when not turned off explicitly)
+    (setq org-startup-indented t)
+    ;; Change the ellipsis
+    (setq org-ellipsis "⤵")
+    ;; Custom agenda
+    (setq org-agenda-custom-commands
+          '(("m" "Agenda"
+             (
+              (todo "STARTED"
+                    ((org-agenda-overriding-header "In progress")))
+              (agenda ""
+                      ((org-agenda-overriding-header "Daily Agenda")
+                       (org-agenda-span 1)
+                       (org-deadline-warning-days 0)
+                       (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+                       ))
+              (agenda ""
+                      ((org-agenda-overriding-header "Next three days")
+                       (org-agenda-start-on-weekday nil)
+                       (org-agenda-start-day "+1d")
+                       (org-agenda-span 3)
+                       (org-deadline-warning-days 0)))
+              (agenda ""
+                      ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
+                       (org-agenda-span 14)
+                       (org-agenda-show-all-dates nil)
+                       (org-agenda-time-grid nil)
+                       (org-deadline-warning-days 0)
+                       (org-agenda-entry-types '(:deadline))))
+              (todo "NEXT"
+                    ((org-agenda-overriding-header "Tasks to do next")))
+              (todo "WAITING"
+                    ((org-agenda-overriding-header "Tasks on hold")))))))
+    )
 #+end_src
 ** OrgTempo templating
 Org mode supports templates. Use =C-c C-,= to access them.
@@ -696,10 +715,11 @@ I use =mbsync= to fetch email, built-in =smtpmail-send-it= to send mail, and =mu
 My email config is in a separate elisp file - I want to change this so only privacy sensitive pieces are...
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-email.el :mkdirp yes
-(let ((email-el (expand-file-name "email.el"
-				  user-emacs-directory))
-      )
-    (load-file email-el))
+  ;;; ...  -*- lexical-binding: t -*-
+  (let ((email-el (expand-file-name "email.el"
+    				  user-emacs-directory))
+          )
+        (load-file email-el))
 #+end_src
 
 ** prettier headers
@@ -744,131 +764,132 @@ uses the built-in [[help:completing-read][completing-read]] function to suggest 
 
 This is just the config from the README as I get used to it.
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-completion.el :mkdirp yes
-    ;; Example configuration for Consult
-    (use-package consult
-      :ensure t
-      :demand t
-      :after org
+  ;;; ...  -*- lexical-binding: t -*-
+  ;; Example configuration for Consult
+  (use-package consult
+    :ensure t
+    :demand t
+    :after org
 
-      ;; Replace bindings. Lazily loaded due by `use-package'.
-      :bind (
-  	   ;; C-c bindings (mode-specific-map)
-             ("C-c h" . consult-history)
-             ("C-c m" . consult-mode-command)
-             ("C-c k" . consult-kmacro)
-             ;; C-x bindings (ctl-x-map)
-             ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-             ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-             ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-             ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-             ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-             ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
-             ;; Custom M-# bindings for fast register access
-             ("M-#" . consult-register-load)
-             ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-             ("C-M-#" . consult-register)
-             ;; Other custom bindings
-             ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-             ;; M-g bindings (goto-map)
-             ("M-g e" . consult-compile-error)
-             ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
-             ("M-g g" . consult-goto-line)             ;; orig. goto-line
-             ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-             ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-             ("M-g m" . consult-mark)
-             ("M-g k" . consult-global-mark)
-             ([remap-imenu] . consult-imenu)
-             ("M-i" . consult-imenu) ;; my own preferred binding for imenu
-             ("M-g I" . consult-imenu-multi)
-             ;; M-s bindings (search-map)
-             ("M-s d" . consult-find)
-             ("M-s D" . consult-locate)
-             ("M-s g" . consult-grep)
-             ("M-s G" . consult-git-grep)
-             ("M-s r" . consult-ripgrep)
-             ("M-s l" . consult-line)
-             ("M-s L" . consult-line-multi)
-             ("M-s m" . consult-multi-occur)
-             ("M-s k" . consult-keep-lines)
-             ("M-s u" . consult-focus-)
-             ;; Isearch integration
-             ("M-s e" . consult-isearch-history)
-             :map isearch-mode-map
-             ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-             ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-             ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-             ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
-             ;; Minibuffer history
-             :map minibuffer-local-map
-             ("M-s" . consult-history)                 ;; orig. next-matching-history-element
-             ("M-r" . consult-history)                ;; orig. previous-matching-history-element
-             :map org-mode-map
-             ("M-i" . consult-org-heading))
+    ;; Replace bindings. Lazily loaded due by `use-package'.
+    :bind (
+      	 ;; C-c bindings (mode-specific-map)
+           ("C-c h" . consult-history)
+           ("C-c m" . consult-mode-command)
+           ("C-c k" . consult-kmacro)
+           ;; C-x bindings (ctl-x-map)
+           ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+           ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+           ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+           ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+           ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+           ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
+           ;; Custom M-# bindings for fast register access
+           ("M-#" . consult-register-load)
+           ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+           ("C-M-#" . consult-register)
+           ;; Other custom bindings
+           ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+           ;; M-g bindings (goto-map)
+           ("M-g e" . consult-compile-error)
+           ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+           ("M-g g" . consult-goto-line)             ;; orig. goto-line
+           ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+           ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ([remap-imenu] . consult-imenu)
+           ("M-i" . consult-imenu) ;; my own preferred binding for imenu
+           ("M-g I" . consult-imenu-multi)
+           ;; M-s bindings (search-map)
+           ("M-s d" . consult-find)
+           ("M-s D" . consult-locate)
+           ("M-s g" . consult-grep)
+           ("M-s G" . consult-git-grep)
+           ("M-s r" . consult-ripgrep)
+           ("M-s l" . consult-line)
+           ("M-s L" . consult-line-multi)
+           ("M-s m" . consult-multi-occur)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-)
+           ;; Isearch integration
+           ("M-s e" . consult-isearch-history)
+           :map isearch-mode-map
+           ("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+           ("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+           ("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+           ("M-s L" . consult-line-multi)            ;; needed by consult-line to detect isearch
+           ;; Minibuffer history
+           :map minibuffer-local-map
+           ("M-s" . consult-history)                 ;; orig. next-matching-history-element
+           ("M-r" . consult-history)                ;; orig. previous-matching-history-element
+           :map org-mode-map
+           ("M-i" . consult-org-heading))
 
 
-      ;; Enable automatic preview at point in the *Completions* buffer. This is
-      ;; relevant when you use the default completion UI.
-      :hook (completion-list-mode . consult-preview-at-point-mode)
+    ;; Enable automatic preview at point in the *Completions* buffer. This is
+    ;; relevant when you use the default completion UI.
+    :hook (completion-list-mode . consult-preview-at-point-mode)
 
-      ;; The :init configuration is always executed (Not lazy)
-      :init
+    ;; The :init configuration is always executed (Not lazy)
+    :init
 
-      ;; Optionally configure the register formatting. This improves the register
-      ;; preview for `consult-register', `consult-register-load',
-      ;; `consult-register-store' and the Emacs built-ins.
-      (setq register-preview-delay 0.5
-            register-preview-function #'consult-register-format)
+    ;; Optionally configure the register formatting. This improves the register
+    ;; preview for `consult-register', `consult-register-load',
+    ;; `consult-register-store' and the Emacs built-ins.
+    (setq register-preview-delay 0.5
+          register-preview-function #'consult-register-format)
 
-      ;; Optionally tweak the register preview window.
-      ;; This adds thin lines, sorting and hides the mode line of the window.
-      (advice-add #'register-preview :override #'consult-register-window)
+    ;; Optionally tweak the register preview window.
+    ;; This adds thin lines, sorting and hides the mode line of the window.
+    (advice-add #'register-preview :override #'consult-register-window)
 
-      ;; Use Consult to select xref locations with preview
-      (setq xref-show-xrefs-function #'consult-xref
-            xref-show-definitions-function #'consult-xref)
+    ;; Use Consult to select xref locations with preview
+    (setq xref-show-xrefs-function #'consult-xref
+          xref-show-definitions-function #'consult-xref)
 
-      ;; Configure other variables and modes in the :config section,
-      ;; after lazily loading the package.
-      :config
+    ;; Configure other variables and modes in the :config section,
+    ;; after lazily loading the package.
+    :config
 
-      ;; Optionally configure preview. The default value
-      ;; is 'any, such that any key triggers the preview.
-      ;; (setq consult-preview-key 'any)
-      ;; (setq consult-preview-key "M-.")
-      ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
-      ;; For some commands and buffer sources it is useful to configure the
-      ;; :preview-key on a per-command basis using the `consult-customize' macro.
-      (consult-customize
-       consult-theme :preview-key '(:debounce 0.2 any)
-       consult-ripgrep consult-git-grep consult-grep
-       consult-bookmark consult-recent-file consult-xref
-       consult--source-bookmark consult--source-file-register
-       consult--source-recent-file consult--source-project-recent-file
-       ;; :preview-key "M-."
-       :preview-key '(:debounce 0.4 any))
+    ;; Optionally configure preview. The default value
+    ;; is 'any, such that any key triggers the preview.
+    ;; (setq consult-preview-key 'any)
+    ;; (setq consult-preview-key "M-.")
+    ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+    ;; For some commands and buffer sources it is useful to configure the
+    ;; :preview-key on a per-command basis using the `consult-customize' macro.
+    (consult-customize
+     consult-theme :preview-key '(:debounce 0.2 any)
+     consult-ripgrep consult-git-grep consult-grep
+     consult-bookmark consult-recent-file consult-xref
+     consult--source-bookmark consult--source-file-register
+     consult--source-recent-file consult--source-project-recent-file
+     ;; :preview-key "M-."
+     :preview-key '(:debounce 0.4 any))
 
-      ;; Optionally configure the narrowing key.
-      ;; Both < and C-+ work reasonably well.
-      (setq consult-narrow-key "<") ;; (kbd "C-+")
+    ;; Optionally configure the narrowing key.
+    ;; Both < and C-+ work reasonably well.
+    (setq consult-narrow-key "<") ;; (kbd "C-+")
 
-      ;; Optionally make narrowing help available in the minibuffer.
-      ;; You may want to use `embark-prefix-help-command' or which-key instead.
-      ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+    ;; Optionally make narrowing help available in the minibuffer.
+    ;; You may want to use `embark-prefix-help-command' or which-key instead.
+    ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
 
-      ;; By default `consult-project-function' uses `project-root' from project.el.
-      ;; Optionally configure a different project root function.
-      ;; There are multiple reasonable alternatives to chose from.
-      ;;;; 1. project.el (the default)
-  ;;    (setq consult-project-function #'consult--default-project--function)
-      ;;;; 2. projectile.el (projectile-project-root)
+    ;; By default `consult-project-function' uses `project-root' from project.el.
+    ;; Optionally configure a different project root function.
+    ;; There are multiple reasonable alternatives to chose from.
+          ;;;; 1. project.el (the default)
+    ;;    (setq consult-project-function #'consult--default-project--function)
+          ;;;; 2. projectile.el (projectile-project-root)
 
-      ;; (autoload 'projectile-project-root "projectile")
+    ;; (autoload 'projectile-project-root "projectile")
 
-      ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
-      ;;;; 3. vc.el (vc-root-dir)
-      ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
-      ;;;; 4. locate-dominating-file
-      ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
+    ;; (setq consult-project-function (lambda (_) (projectile-project-root)))
+          ;;;; 3. vc.el (vc-root-dir)
+    ;; (setq consult-project-function (lambda (_) (vc-root-dir)))
+          ;;;; 4. locate-dominating-file
+    ;; (setq consult-project-function (lambda (_) (locate-dominating-file "." ".git")))
     )
 #+end_src
 
@@ -1044,6 +1065,7 @@ https://github.com/minad/tempel
 * denote module
 ** install and configure denote
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-denote.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package denote
     :ensure t
     :bind
@@ -1126,10 +1148,11 @@ https://protesilaos.com/emacs/consult-denote
 * TODO navigation module
 ** avy
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-navigation.el :mkdirp yes
-  (use-package avy
-    :pin melpa
-    :ensure t
-    :bind ("M-s s" . avy-goto-char-timer))
+;;; ...  -*- lexical-binding: t -*-
+(use-package avy
+  :pin melpa
+  :ensure t
+  :bind ("M-s s" . avy-goto-char-timer))
 #+end_src
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-navigation.el :mkdirp yes
@@ -1153,11 +1176,13 @@ There's more functionality other than jumping, but I haven't needed it yet. Pres
 
 [[https://github.com/abo-abo/ace-window]]
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el :mkdirp yes
-(use-package ace-window
-  :ensure t
-  :bind (("M-o" . ace-window))
-  :config
-  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+  ;;; ...  -*- lexical-binding: t -*-
+
+  (use-package ace-window
+    :ensure t
+    :bind (("M-o" . ace-window))
+    :config
+    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 #+end_src
 ** Uniquify format
 If buffers have similar names, use a more useful way to distinguish them
@@ -1179,18 +1204,13 @@ The github mirror seems to be kept up to date, so this will do for fetching.
 
 This is a PITA because ~use-package~ is a macro it tries to always expand - I will need to look deeper into this, or use conditional exporting
 #+begin_src emacs-lisp #:tangle twem2-config-modules/twem2-bookmarks.el :mkdirp yes
-  (if (version< emacs-version "30")
-   ;   (use-package bookmark+
-    ;     :ensure t
-     ;    :vc (:fetcher github :repo emacsmirror/bookmark-plus.git))
-      (message "Not loaded bookmark+ - see emacs.org")
-    (use-package bookmark+
-       :ensure
-       :vc (:url "https://github.com/emacsmirror/bookmark-plus.git"
-            :rev :newest)))
+(use-package bookmark+
+     :ensure
+     :vc (:url "https://github.com/emacsmirror/bookmark-plus.git"
+          :rev :newest)))
 #+end_src
 ** Provide twem2-bookmarks
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-bookmarks.el
+#+begin_src emacs-lisp # :tangle twem2-config-modules/twem2-bookmarks.el
 (provide 'twem2-bookmarks)
 #+end_src
 * dired module
@@ -1200,6 +1220,7 @@ From Prot: [ Watch: <https://protesilaos.com/codelog/2023-06-26-emacs-file-dired
 A lot of this is taken from Prot's config: https://protesilaos.com/emacs/dotemacs#h:f8b08a77-f3a8-42fa-b1a9-f940348889c3
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-dired.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package dired
     :config
     (setq dired-recursive-copies 'always)
@@ -1221,38 +1242,39 @@ To use it for a language you need to install a library for that language with =t
 This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el :mkdirp yes
-      (use-package emacs
-        :if (treesit-available-p)
-        :config
-        ;; Some default grammar definition sources
-        (setq treesit-language-source-alist
-         '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-           (cmake "https://github.com/uyha/tree-sitter-cmake")
-           (css "https://github.com/tree-sitter/tree-sitter-css")
-           (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-           (go "https://github.com/tree-sitter/tree-sitter-go")
-           (html "https://github.com/tree-sitter/tree-sitter-html")
-           (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-           (java "https://github.com/tree-sitter/tree-sitter-java.git")
-           (json "https://github.com/tree-sitter/tree-sitter-json")
-           (make "https://github.com/alemuller/tree-sitter-make")
-           (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-           (python "https://github.com/tree-sitter/tree-sitter-python")
-           (toml "https://github.com/tree-sitter/tree-sitter-toml")
-           (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-           (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-           (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-           (ruby "https://github.com/tree-sitter/tree-sitter-ruby")))
-        ;; Remap some of the modes
-        (setq major-mode-remap-alist
-              '((yaml-mode . yaml-ts-mode)
-                (bash-mode . bash-ts-mode)
-                (js-mode . js-ts-mode)
-                (typescript-mode . typescript-ts-mode)
-                (json-mode . json-ts-mode)
-                (css-mode . css-ts-mode)
-                (python-mode . python-ts-mode)
-                (go-mode . go-ts-mode)
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package emacs
+    :if (treesit-available-p)
+    :config
+    ;; Some default grammar definition sources
+    (setq treesit-language-source-alist
+     '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+       (cmake "https://github.com/uyha/tree-sitter-cmake")
+       (css "https://github.com/tree-sitter/tree-sitter-css")
+       (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+       (go "https://github.com/tree-sitter/tree-sitter-go")
+       (html "https://github.com/tree-sitter/tree-sitter-html")
+       (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+       (java "https://github.com/tree-sitter/tree-sitter-java.git")
+       (json "https://github.com/tree-sitter/tree-sitter-json")
+       (make "https://github.com/alemuller/tree-sitter-make")
+       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+       (python "https://github.com/tree-sitter/tree-sitter-python")
+       (toml "https://github.com/tree-sitter/tree-sitter-toml")
+       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+       (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+       (ruby "https://github.com/tree-sitter/tree-sitter-ruby")))
+    ;; Remap some of the modes
+    (setq major-mode-remap-alist
+          '((yaml-mode . yaml-ts-mode)
+            (bash-mode . bash-ts-mode)
+            (js-mode . js-ts-mode)
+            (typescript-mode . typescript-ts-mode)
+            (json-mode . json-ts-mode)
+            (css-mode . css-ts-mode)
+            (python-mode . python-ts-mode)
+            (go-mode . go-ts-mode)
   	      (ruby-mode . ruby-ts-mode))))
 #+end_src
 
@@ -1290,14 +1312,15 @@ Currently I just use eglot as is - I will need to do some configuration at some 
 some corfu customization (see https://github.com/minad/corfu/wiki)
 ** Configure eglot
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
-      (use-package eglot
-        :ensure t
-        :after cape
-        :bind (:map eglot-mode-map
-                    ("C-<return>" . eglot-code-actions))
-        :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
-        ;:config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp"))
-        )
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package eglot
+    :ensure t
+    :after cape
+    :bind (:map eglot-mode-map
+                ("C-<return>" . eglot-code-actions))
+    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
+  					;:config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp"))
+    )
 
 
   ;;  (require 'eglot-config)
@@ -1344,6 +1367,7 @@ $\LaTeX$ typesetting (used mainly for mathematical symbols/formulae)
 Recommended package for editing $\LaTeX$
 Required for CDLaTeX
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-latex.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package tex
     :ensure auctex
     :config
@@ -1364,6 +1388,7 @@ Package for inserting $\LaTeX$ quickly. Usable in =org-mode=, =LaTeX-mode=, and 
 * web development module
 ** web-mode
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-web-dev.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package web-mode
     :ensure t
     :config
@@ -1386,12 +1411,11 @@ If the terminfo for eat is wrong then weird things will happen.
 On MacOS you must use the system provided =tic= program, not the homebrew one:
 in =~/.emacs.d/elpa/eat-xxx/= run =/usr/bin/tic -x terminfo.ti=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
-    (use-package eat
-      :ensure t
-      ;:bind ("C-x p s" . eat-project)
-      )
-
-
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package eat
+    :ensure t
+    ;; :bind ("C-x p s" . eat-project)
+    )
 #+end_src
 ** TODO vterm
 :LOGBOOK:
@@ -1426,8 +1450,9 @@ requires CMake to compile
 * version control module
 ** magit
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
-(use-package magit
-  :ensure t)
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package magit
+    :ensure t)
 #+end_src
 ** provide twem-vc
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el
@@ -1436,6 +1461,7 @@ requires CMake to compile
 * markdown mode module
 ** Install markdown mode
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-markdown.el
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package markdown-mode
     :ensure t
     :mode ("README\\.md\\'" . gfm-mode)
@@ -1451,6 +1477,7 @@ nerd-fonts have lots of useful icons (more than all-the-icons)
 Fonts need to be installed - =nerd-icons-install-fonts= will try and do this
 On Windows, the font will still have to be installed manually
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-icons.el
+  ;;; ...  -*- lexical-binding: t -*-
   (use-package nerd-icons
     :ensure t)
 
@@ -1475,7 +1502,8 @@ On Windows, the font will still have to be installed manually
 #+end_src
 * TODO general programming module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-programming.el
-   (use-package smartparens
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package smartparens
      :ensure t
      :hook (prog-mode text-mode markdown-mode)
      :config
@@ -1486,13 +1514,12 @@ On Windows, the font will still have to be installed manually
 
    (provide 'twem2-programming)
 #+end_src
-
-
-
 * TODO python module
 TODO: make ~pyenv-mode~ only active when ~python-mode~ or ~org-mode~ active
 TODO: org-babel config
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-python.el
+  ;;; ...  -*- lexical-binding: t -*-
+
   ;; (use-package pyvenv
   ;;   :ensure t
   ;;   :config
@@ -1518,6 +1545,8 @@ TODO: org-babel config
 ** inf-ruby
 Launch IRB in emacs
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ruby.el
+  ;;; ...  -*- lexical-binding: t -*-
+
   (use-package inf-ruby
     :ensure t
     :hook (ruby-mode . inf-ruby))
@@ -1542,70 +1571,73 @@ Launch IRB in emacs
 
 * TODO typescript module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-typescript.el :mkdirp yes
-      (use-package emacs
-        :mode ("\\.ts\\'" . typescript-ts-mode))
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package emacs
+    :mode ("\\.ts\\'" . typescript-ts-mode))
 
-      (use-package eslint-flymake
-        :disabled true
-        :ensure t
-        :hook ((js-mode            . eslint-flymake-setup)
-               (js-jsx-mode        . eslint-flymake-setup)
-               (typescript-ts-mode . eslint-flymake-setup)
-               (tsx-ts-mode        . eslint-flymake-setup)))
+  (use-package eslint-flymake
+    :disabled true
+    :ensure t
+    :hook ((js-mode            . eslint-flymake-setup)
+           (js-jsx-mode        . eslint-flymake-setup)
+           (typescript-ts-mode . eslint-flymake-setup)
+           (tsx-ts-mode        . eslint-flymake-setup)))
 
-    ;; projects to ignore eslinting on save. I should package this up.
-    ;; name is (projec-name (project-current))
-    (setq twem2--eslint-ignore-projects '("salesforce-egress"))
+  ;; projects to ignore eslinting on save. I should package this up.
+  ;; name is (projec-name (project-current))
+  (setq twem2--eslint-ignore-projects '("salesforce-egress"))
 
-    (defun eslint-fix-file ()
-      (interactive)
-      (let ((project (project-name (project-current))))
-        (if (not (member project twem2--eslint-ignore-projects))
-    	(progn
-    	  (message "eslint --fixing the file" (buffer-file-name))
-    	  (shell-command (concat "eslint --fix " (buffer-file-name)))))))
-
-
-    (defun eslint-fix-file-and-revert ()
-        (interactive)
-        (eslint-fix-file)  (revert-buffer t t))
+  (defun eslint-fix-file ()
+    (interactive)
+    (let ((project (project-name (project-current))))
+      (if (not (member project twem2--eslint-ignore-projects))
+  	(progn
+  	  (message "eslint --fixing the file" (buffer-file-name))
+  	  (shell-command (concat "eslint --fix " (buffer-file-name)))))))
 
 
-      (add-hook 'typescript-ts-mode-hook
-      	  (lambda ()
-      	    (add-hook 'after-save-hook #'eslint-fix-file-and-revert nil 'make-it-local)))
+  (defun eslint-fix-file-and-revert ()
+    (interactive)
+    (eslint-fix-file)  (revert-buffer t t))
 
-    (defun biome-fix-file ()
-      (interactive)
-      (progn
-        (message "biome lint fixing the file" (buffer-file-name))
-        (shell-command (concat "npx biome format --write " (buffer-file-name) " && npx biome lint --write " (buffer-file-name)))))
 
-    (defun biome-fix-file-and_revert ()
-      (interactive)
-      (biome-fix-file)
-      (revert-buffer t t))
+  (add-hook 'typescript-ts-mode-hook
+    	  (lambda ()
+    	    (add-hook 'after-save-hook #'eslint-fix-file-and-revert nil 'make-it-local)))
 
-    (use-package magit-popup
-      :ensure t)
+  (defun biome-fix-file ()
+    (interactive)
+    (progn
+      (message "biome lint fixing the file" (buffer-file-name))
+      (shell-command (concat "npx biome format --write " (buffer-file-name) " && npx biome lint --write " (buffer-file-name)))))
 
-    (use-package jest
-      :disabled
-      :vc (:url "https://github.com/timcharper/emacs-jest.git")
-      :ensure t)
+  (defun biome-fix-file-and_revert ()
+    (interactive)
+    (biome-fix-file)
+    (revert-buffer t t))
 
-    (use-package jest-test-mode
-      :ensure t
-      :custom ((jest-test-options '("--color" "--projects" "src" "--runInBand" "--detectOpenHandles"))
-  	     (jest-test-command-string "source .secrets.env && npx %s jest %s %s"))
-      :hook (js-mode typescript-ts-mode))
+  (use-package magit-popup
+    :ensure t)
 
-    (provide 'twem2-typescript)
+  (use-package jest
+    :disabled
+    :vc (:url "https://github.com/timcharper/emacs-jest.git")
+    :ensure t)
+
+  (use-package jest-test-mode
+    :ensure t
+    :custom ((jest-test-options '("--color" "--projects" "src" "--runInBand" "--detectOpenHandles"))
+  	   (jest-test-command-string "source .secrets.env && npx %s jest %s %s"))
+    :hook (js-mode typescript-ts-mode))
+
+  (provide 'twem2-typescript)
 #+end_src
 
 * TODO terraform module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-terraform.el :mkdirp yes
-  (use-package terraform-mode
+  ;;; ...  -*- lexical-binding: t -*-
+
+  g(use-package terrgaform-mode
     :ensure t)
 
   (provide 'twem2-terraform)
@@ -1614,6 +1646,8 @@ Launch IRB in emacs
 * TODO project module
 Customization or =project.el=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-project.el :mkdirp yes
+  ;;; ...  -*- lexical-binding: t -*-
+
   ;; consult-ripgrep in project root
   ;; see project-find-dir
   (defun custom/project--find-dirs (project)
@@ -1664,6 +1698,8 @@ It requires the epdfinfo server to be installed. This is handled automatically o
 If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]] manually
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-pdf.el
+  ;;; ...  -*- lexical-binding: t -*-
+
   (use-package pdf-tools
     :ensure t
     :if (eq system-type 'gnu/linux)
@@ -1672,24 +1708,30 @@ If this all appears broken then run [[help:pdf-tools-install][pdf-tools-install]
 
   (provide 'twem2-pdf)
 #+end_src
-* Casual module
+* TODO Casual module
+Add more modes https://kickingvegas.github.io/casual/Casual-Modes.html
+
+For some reason the bookmark rebinding is not working
+
 casual provides transient menus for many modes, exposing the functionality in a much clearer way
 ** Main package
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
+  ;;; ...  -*- lexical-binding: t -*-
+
   (use-package casual
     :ensure t
     :after (calc ibuffer)
     :bind (:map calc-mode-map ("C-o" . casual-calc-tmenu)
-  	 :map dired-mode-map ("C-o" . casual-dired-tmenu)
-  	 :map isearch-mode-map ("C-o" . casual-isearch-tmenu)
-  	 :map ibuffer-mode-map
-  	      ("C-o" . casual-ibuffer-tmenu)
-   	          ("F" . casual-ibuffer-filter-tmenu)
-  	      ("s" . casual-ibuffer-sortby-tmenu)
-  	 :map Info-mode-map ("C-o" . casual-info-tmenu)
-  	 :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
-  	 :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
-  	 :map org-agenda-mode-map ("C-o" . casual-agenda-tmenu)))
+    	      :map dired-mode-map ("C-o" . casual-dired-tmenu)
+    	      :map isearch-mode-map ("C-o" . casual-isearch-tmenu)
+    	      :map ibuffer-mode-map
+    	      ("C-o" . casual-ibuffer-tmenu)
+     	      ("F" . casual-ibuffer-filter-tmenu)
+    	      ("s" . casual-ibuffer-sortby-tmenu)
+    	      :map Info-mode-map ("C-o" . casual-info-tmenu)
+    	      :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
+    	      :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
+    	      :map org-agenda-mode-map ("C-o" . casual-agenda-tmenu)))
 #+end_src
 ** casual-avy
 transient menu for avy (maybe I'll use it more)
@@ -1703,43 +1745,49 @@ transient menu for avy (maybe I'll use it more)
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
   (provide 'twem2-casual)
 #+end_src
-* elfeed module
+* TODO elfeed module
+Somethings wrong here - investigate
+
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-elfeed.el
-    (use-package elfeed
-      :ensure t
-      :unless twem2--is-work
-      :custom
-      (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
-      (elfeed-show-entry-switch 'display-buffer))
+  ;;; ...  -*- lexical-binding: t -*-
+
+  (use-package elfeed
+    :ensure t
+    :unless twem2--is-work
+    :custom
+    (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
+    (elfeed-show-entry-switch 'display-buffer))
 
 
-        ;; use org to configure
-    (use-package elfeed-org
-      :ensure t
-      :unless twem2--is-work
-      :after (elfeed org)
-      :config
-      (elfeed-org)
-      (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
+      ;; use org to configure
+  (use-package elfeed-org
+    :ensure t
+    :unless twem2--is-work
+    :after (elfeed org)
+    :config
+    (elfeed-org)
+    (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
 
-    ;; Use fork which adds dates to the header linnne
-    (use-package elfeed-goodies
-      :ensure t
-      :unless twem2--is-work
-      :vc (:url "https://github.com/jeetelongname/elfeed-goodies.git"
+  ;; Use fork which adds dates to the header linnne
+  (use-package elfeed-goodies
+    :ensure t
+    :unless twem2--is-work
+    :vc (:url "https://github.com/jeetelongname/elfeed-goodies.git"
   	      :branch "master")
-      :after elfeed
-      :custom
-      (elfeed-goodies/entry-pane-position 'bottom)
-      :config
-      (elfeed-goodies/setup))
+    :after elfeed
+    :custom
+    (elfeed-goodies/entry-pane-position 'bottom)
+    :config
+    (elfeed-goodies/setup))
 
-    (provide 'twem2-elfeed)
+  (provide 'twem2-elfeed)
 #+end_src
 
-* testing module
+* TODO testing module
 Anything I'm trying out
-
+ #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+   ;;; ...  -*- lexical-binding: t -*-
+ #+end_src
 ** TODO activities
 :LOGBOOK:
 - State "TODO"       from              [2024-04-26 Fri 14:02]
@@ -1866,6 +1914,8 @@ only here for quick adding
 #+end_src
 * TODO AI module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
+  ;;; ...  -*- lexical-binding: t -*-
+
   ;; claude-code is needed for ai-code-interface
 
   ;; install required inheritenv dependency:
@@ -1893,6 +1943,70 @@ only here for quick adding
 
   (provide 'twem2-ai)
 #+end_src
+* TODO IRC
+This requires tidying
+
+Some interesting info: [[https://www.reddit.com/r/emacs/comments/8ml6na/tip_how_to_make_erc_fun_to_use/]]
+
+Numeric message types can be found in the spec, or [[https://modern.ircdocs.horse/#numerics][here]]
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-irc.el :mkdirp t
+  ;;; ...  -*- lexical-binding: t -*-
+
+  (use-package erc
+      :custom
+      (erc-autojoin-channels-alist
+       '((Libera.Chat "#org-mode" "#emacs-beginners" "#emacs-til" "#emacs" "#systemcrafters")))
+      (erc-hide-list '("JOIN" "PART" "QUIT"))
+      (erc-lurker-hide-list '("JOIN" "PART" "QUIT"))
+      (erc-track-exclude-type '("JOIN" "MODE" "NICK" "PART" "QUIT", "333", "353"))
+      :config
+      (add-to-list 'erc-modules 'track 'erc))
+#+end_src
+
+This code from [[https://www.emacswiki.org/emacs/ErcBar]] puts a bar at the last read point in the buffer
+#+begin_src emacs-lisp  :tangle twem2-config-modules/twem2-irc.el :mkdirp t
+  (eval-after-load 'erc-track
+    '(progn
+       (defun erc-bar-move-back (n)
+         "Moves back n message lines. Ignores wrapping, and server messages."
+         (interactive "nHow many lines ? ")
+         (re-search-backward "^.*<.*>" nil t n))
+
+       (defun erc-bar-update-overlay ()
+         "Update the overlay for current buffer, based on the content of
+  erc-modified-channels-alist. Should be executed on window change."
+         (interactive)
+         (let* ((info (assq (current-buffer) erc-modified-channels-alist))
+                (count (cadr info)))
+           (if (and info (> count erc-bar-threshold))
+               (save-excursion
+                 (end-of-buffer)
+                 (when (erc-bar-move-back count)
+                   (let ((inhibit-field-text-motion t))
+                     (move-overlay erc-bar-overlay
+                                   (line-beginning-position)
+                                   (line-end-position)
+                                   (current-buffer)))))
+             (delete-overlay erc-bar-overlay))))
+
+       (defvar erc-bar-threshold 1
+         "Display bar when there are more than erc-bar-threshold unread messages.")
+       (defvar erc-bar-overlay nil
+         "Overlay used to set bar")
+       (setq erc-bar-overlay (make-overlay 0 0))
+       (overlay-put erc-bar-overlay 'face '(:underline "black"))
+       ;;put the hook before erc-modified-channels-update
+       (defadvice erc-track-mode (after erc-bar-setup-hook
+                                        (&rest args) activate)
+         ;;remove and add, so we know it's in the first place
+         (remove-hook 'window-configuration-change-hook 'erc-bar-update-overlay)
+         (add-hook 'window-configuration-change-hook 'erc-bar-update-overlay))
+       (add-hook 'erc-send-completed-hook (lambda (str)
+                                            (erc-bar-update-overlay)))))
+
+  (provide 'twem2-irc)
+#+end_src
+*
 * ------ below here is not yet brought in ------
 
 * TODO things to try out
@@ -2696,66 +2810,7 @@ Ement is the  best matrix client for emacs.
     (ement-save-sessions t "save session on exit"))
 #+end_src
 * IRC
-Rather than use IRC bridged via matrix, use IRC directly as ement.el takes too long to sync with IRC rooms sometimes
-Moot point now as the  LibreChat bridge has been removed
-
-Some interesting info: [[https://www.reddit.com/r/emacs/comments/8ml6na/tip_how_to_make_erc_fun_to_use/]]
-
-Numeric message types can be found in the spec, or [[https://modern.ircdocs.horse/#numerics][here]]
-#+begin_src emacs-lisp
-  (use-package erc
-    :custom
-    (erc-autojoin-channels-alist
-     '((Libera.Chat "#org-mode" "#emacs-beginners" "#emacs-til" "#emacs" "#systemcrafters")))
-    (erc-hide-list '("JOIN" "PART" "QUIT"))
-    (erc-lurker-hide-list '("JOIN" "PART" "QUIT"))
-    (erc-track-exclude-type '("JOIN" "MODE" "NICK" "PART" "QUIT", "333", "353"))
-    :config
-    (add-to-list 'erc-modules 'track 'erc))
-#+end_src
-
-This code from [[https://www.emacswiki.org/emacs/ErcBar]] puts a bar at the last read point in the buffer
-#+begin_src emacs-lisp
-    (eval-after-load 'erc-track
-      '(progn
-         (defun erc-bar-move-back (n)
-           "Moves back n message lines. Ignores wrapping, and server messages."
-           (interactive "nHow many lines ? ")
-           (re-search-backward "^.*<.*>" nil t n))
-
-         (defun erc-bar-update-overlay ()
-           "Update the overlay for current buffer, based on the content of
-    erc-modified-channels-alist. Should be executed on window change."
-           (interactive)
-           (let* ((info (assq (current-buffer) erc-modified-channels-alist))
-                  (count (cadr info)))
-             (if (and info (> count erc-bar-threshold))
-                 (save-excursion
-                   (end-of-buffer)
-                   (when (erc-bar-move-back count)
-                     (let ((inhibit-field-text-motion t))
-                       (move-overlay erc-bar-overlay
-                                     (line-beginning-position)
-                                     (line-end-position)
-                                     (current-buffer)))))
-               (delete-overlay erc-bar-overlay))))
-
-         (defvar erc-bar-threshold 1
-           "Display bar when there are more than erc-bar-threshold unread messages.")
-         (defvar erc-bar-overlay nil
-           "Overlay used to set bar")
-         (setq erc-bar-overlay (make-overlay 0 0))
-         (overlay-put erc-bar-overlay 'face '(:underline "black"))
-         ;;put the hook before erc-modified-channels-update
-         (defadvice erc-track-mode (after erc-bar-setup-hook
-                                          (&rest args) activate)
-           ;;remove and add, so we know it's in the first place
-           (remove-hook 'window-configuration-change-hook 'erc-bar-update-overlay)
-           (add-hook 'window-configuration-change-hook 'erc-bar-update-overlay))
-         (add-hook 'erc-send-completed-hook (lambda (str)
-                                              (erc-bar-update-overlay)))))
-#+end_src
-* email
+email
 :LOGBOOK:
 - State "DONE"       from "TODO"       [2023-09-08 Fri 11:06]
 - State "TODO"       from              [2023-08-16 Wed 11:28]

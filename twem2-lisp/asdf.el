@@ -1,3 +1,5 @@
+;;; ...  -*- lexical-binding: t -*-
+
 ;;; asdf.el --- Emacs interface for asdf version manager.
 
 ;; Author: Eric J. Collins <eric@tabfugni.cc>
