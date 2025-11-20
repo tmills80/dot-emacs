@@ -286,9 +286,9 @@ Use visible bell rather than making a noise (could turn off completely?)
 *** Minor modes to hide
 Requires emacs 31+
 #+begin_src emacs-lisp :tangle  twem2-config-modules/twem2-essentials.el
-    (setq mode-line-collapse-minor-modes
-  	'(eldoc-mode buffer-face-mode auto-revert-mode org-indent-mode smartparens-mode))
-    (setq mode-line-collapse-minor-modes-to "")
+  (setq mode-line-collapse-minor-modes
+  	'(eldoc-mode buffer-face-mode auto-revert-mode org-indent-mode smartparens-mode subword-mode jest-test-mode))
+  (setq mode-line-collapse-minor-modes-to "")
 #+end_src
 ** emacs variables and other config
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
