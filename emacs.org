@@ -290,6 +290,10 @@ Requires emacs 31+
   	'(eldoc-mode buffer-face-mode auto-revert-mode org-indent-mode smartparens-mode subword-mode jest-test-mode))
   (setq mode-line-collapse-minor-modes-to "")
 #+end_src
+*** Turn on column-number-mode
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+(column-number-mode t)
+#+end_src
 ** emacs variables and other config
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
 :config
@@ -350,6 +354,12 @@ I've added soeme useful key-bindings to navigate errors quicker (also useful is 
     :bind (:map flymake-mode-map
                 ("M-p" . flymake-goto-prev-error)
                 ("M-n" . flymake-goto-next-error)))
+#+end_src
+** display line numbers
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (use-package emacs
+    :ensure t
+    :hook ((prog-mode text-mode) . display-line-numbers-mode))
 #+end_src
 ** provide essentials
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
@@ -2059,7 +2069,7 @@ Show column in the modeline
 
 #+name: column numbers
 #+begin_src emacs-lisp
-(column-number-mode t)
+
 #+end_src
 
 ** Better defaults
