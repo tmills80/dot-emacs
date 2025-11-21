@@ -1830,6 +1830,7 @@ Try out projection: https://github.com/mohkale/projection
 ** TODO configure project.el
 [[help:project-vc-extra-root-markers]]
 ** TODO embark
+Move this out of here - I'm using this
 eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
 
 [[https://github.com/oantolin/embark]]
@@ -1864,8 +1865,7 @@ eg. https://karthinks.com/software/fifteen-ways-to-use-embark/
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
-**
-TODO emacs everywhere
+** TODO emacs everywhere
 https://github.com/tecosaur/emacs-everywhere
 
 Running on WSL2 means I need to work out how to copy from Windows if in a Windows program.
@@ -1916,6 +1916,12 @@ Needed to include gnuplot plots in org-mode
 only here for quick adding
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
   (use-package csv-mode
+    :ensure t)
+#+end_src
+** TODO breadcrumbs
+move this somewhere else
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package breadcrumbs
     :ensure t)
 #+end_src
 ** provide
