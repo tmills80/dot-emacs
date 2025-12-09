@@ -545,6 +545,7 @@ The default list of modes is good for now
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
 (provide 'twem2-theme)
 #+end_src
+
 * org-mode module
 I make extensive use of =org-mode= for all sorts of things
 ** TODO Install and configure org
@@ -1921,7 +1922,7 @@ only here for quick adding
 ** TODO breadcrumbs
 move this somewhere else
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-  (use-package breadcrumbs
+  (use-package breadcrumb
     :ensure t)
 #+end_src
 ** provide
