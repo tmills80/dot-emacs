@@ -1,4 +1,4 @@
-#+title:   Emacs configuration
+g#+title:   Emacs configuration
 #+author:  Tristan Mills
 #+macro:    export-date (eval (format-time-string "%F %R %z" (current-time)))
 #+macro:    count-words (eval (count-words (point-min) (point-max)))
@@ -207,6 +207,7 @@ In both cases the files should provide a package which is loaded below
 #+begin_src emacs-lisp :tangle init.el
   (require 'twem2-org-latex)
   (require 'asdf)
+  (require 'twem2-run-test)
   (asdf-enable)
 #+end_src
 ** Load modules
@@ -287,7 +288,15 @@ Use visible bell rather than making a noise (could turn off completely?)
 Requires emacs 31+
 #+begin_src emacs-lisp :tangle  twem2-config-modules/twem2-essentials.el
   (setq mode-line-collapse-minor-modes
-  	'(eldoc-mode buffer-face-mode auto-revert-mode org-indent-mode smartparens-mode subword-mode jest-test-mode))
+        '(eldoc-mode
+  	buffer-face-mode
+  	auto-revert-mode
+  	org-indent-mode
+  	smartparens-mode
+  	subword-mode
+  	jest-test-mode
+  	which-key-mode
+  	eldoc-mode))
   (setq mode-line-collapse-minor-modes-to "")
 #+end_src
 *** Turn on column-number-mode
@@ -398,21 +407,26 @@ ef-themes has several very nice themes
 https://protesilaos.com/emacs/ef-themes
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el :mkdirp yes
-  ;;; ...  -*- lexical-binding: t -*-
-  (use-package ef-themes
-    :ensure t
-    :config
-    ;; disable any themes to avoid any clashes
-    (mapc #'disable-theme custom-enabled-themes)
-    ;; two themes to toggle between
-    (setq ef-themes-to-toggle '(ef-spring ef-autumn))
-    (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
-          ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
-    ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
-    (if (not twem2--is-work)
-        (modus-themes-select 'ef-spring)
-      (modus-themes-select 'ef-cyprus)))
-  ;; ef-cyprus duo-light ef-frost ef-light
+    ;;; ...  -*- lexical-binding: t -*-
+    (use-package ef-themes
+      :ensure t
+      :config
+      ;; disable any themes to avoid any clashes
+      (mapc #'disable-theme custom-enabled-themes)
+      ;; customizations from modus themes now ef-themes is based on them
+      (setq modus-themes-bold-constructs t)
+      (setq modus-themes-italic-constructs t)
+      (setq modus-themes-include-derivatives-mode t)
+      ;; two themes to toggle between
+      (setq ef-themes-to-toggle '(ef-spring ef-autumn))
+      (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
+            ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
+      ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
+      (if (not twem2--is-work)
+          (modus-themes-select 'ef-spring)
+        (modus-themes-select 'ef-cyprus)))
+    ;; ef-cyprus duo-light ef-frost ef-light
+
 #+end_src
 
 Bind =<f5>= to the toggle function
@@ -1461,9 +1475,12 @@ requires CMake to compile
 * version control module
 ** magit
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
-  ;;; ...  -*- lexical-binding: t -*-
-  (use-package magit
-    :ensure t)
+    ;;; ...  -*- lexical-binding: t -*-
+    (use-package magit
+      :ensure t
+      :custom
+      (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+      (magit-bury-buffer-function #'magit-restore-window-configuration))
 #+end_src
 ** provide twem-vc
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el
@@ -1521,9 +1538,10 @@ On Windows, the font will still have to be installed manually
      (require 'smartparens-config))
 
   (use-package emacs
+    :mode (("\\.avsc" . json-ts-mode))
     :hook (typescript-ts-mode . subword-mode))
 
-   (provide 'twem2-programming)
+  (provide 'twem2-programming)
 #+end_src
 * TODO python module
 TODO: make ~pyenv-mode~ only active when ~python-mode~ or ~org-mode~ active
@@ -1922,7 +1940,13 @@ only here for quick adding
 ** TODO breadcrumbs
 move this somewhere else
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-  (use-package breadcrumb
+    (use-package breadcrumb
+      :ensure t
+      :config (breadcrumb-mode))
+#+end_src
+** TODO jsonnet mode
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package jsonnet-mode
     :ensure t)
 #+end_src
 ** provide
