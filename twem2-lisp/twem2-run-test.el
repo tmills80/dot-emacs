@@ -17,8 +17,8 @@ Only works for typescript projects, and assumes the buffername is the filename
 ues-last will return the last test run."
   (if (and use-last twem2/last-test)
       twem2/last-test
-  (let ((file (buffer-name)))
-    (if (string-seagrch ".test." file)
+    (let ((file (apply 'file-name-concat (last (file-name-split (buffer-file-name)) 2))))
+    (if (string-search ".test." file)
 	 file
       (concat (car (split-string file ".ts")) ".test.ts")))))
 
@@ -28,7 +28,7 @@ ues-last will return the last test run."
 With a prefix argument this will run the last test.
 Currently this requires the selected buffer to be associated with the current project."
   (interactive "P")
-  (let* ((test-file (get-test-file run-last))
+  (let* ((test-file (twem2/get-test-file run-last))
 	 (compile-command (format "task run-tests -- %s" (shell-quote-argument test-file))))
     (progn
       (call-interactively (compile compile-command))

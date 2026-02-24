@@ -13,4 +13,6 @@ org-mode
 
 typescript-ts-mode
 
-(it "it(\"" (p "description") "\", async () => {" n> n> p q "});")
+(it "it(\"" (p "description") "\", async () => {" n> n> p q n>"});")
+(describe "describe(\"" (p "description") "\", () => {" n> n> p q n>"});")
+(mock "jest.mocked(" (p "function") ").mockResolvedValue(" (p "return value") ");")

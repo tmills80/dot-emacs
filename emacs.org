@@ -1,4 +1,4 @@
-g#+title:   Emacs configuration
+#+title:   Emacs configuration
 #+author:  Tristan Mills
 #+macro:    export-date (eval (format-time-string "%F %R %z" (current-time)))
 #+macro:    count-words (eval (count-words (point-min) (point-max)))
@@ -218,6 +218,7 @@ Each module ~provides~ a package
     :ensure t)
 
   (require 'twem2-essentials)
+  (require 'twem2-ediff)
   (require 'twem2-wsl2)
   (require 'twem2-theme)
   (require 'twem2-org)
@@ -374,6 +375,40 @@ I've added soeme useful key-bindings to navigate errors quicker (also useful is 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
 (provide 'twem2-essentials)
 #+end_src
+* Ediff configuration
+Configure ediff to open in the current tab and restore window configuration on exit.
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ediff.el :mkdirp yes
+;;; twem2-ediff.el --- Ediff configuration -*- lexical-binding: t -*-
+
+(use-package ediff
+  :ensure t
+  :custom
+  ;; Open ediff in the current frame instead of a new one
+  (ediff-window-setup-function 'ediff-setup-windows-plain)
+  ;; Split windows horizontally (side-by-side comparison)
+  (ediff-split-window-function 'split-window-horizontally)
+  :config
+  ;; Save window configuration before ediff and restore after
+  (defvar my-ediff-window-config nil
+    "Window configuration before starting ediff.")
+
+  (defun my-ediff-save-window-config ()
+    "Save the current window configuration before starting ediff."
+    (setq my-ediff-window-config (current-window-configuration)))
+
+  (defun my-ediff-restore-window-config ()
+    "Restore the window configuration saved before ediff."
+    (when my-ediff-window-config
+      (set-window-configuration my-ediff-window-config)
+      (setq my-ediff-window-config nil)))
+
+  (add-hook 'ediff-before-setup-hook #'my-ediff-save-window-config)
+  (add-hook 'ediff-quit-hook #'my-ediff-restore-window-config))
+
+(provide 'twem2-ediff)
+;;; twem2-ediff.el ends here
+#+end_src
 * WSL2 configuration
 ** Use the windows browser
 There are still some issues
@@ -494,15 +529,15 @@ I want variable pitch in modes where I am focussed on prose
 I do wish info mode had better handling of
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
-      (defun turnoff-variable-pitch ()
-        (variable-pitch-mode nil))
+  (defun turnoff-variable-pitch ()
+    (buffer-face-mode nil))
 
-      (defun turnon-variable-pitch ()
-        (variable-pitch-mode))
+  (defun turnon-variable-pitch ()
+    (buffer-face-mode t))
 
-      (use-package emacs
-        :hook ((text-mode . turnon-variable-pitch)
-      	 (yaml-ts-mode . turnoff-variable-pitch)))
+  (use-package emacs
+    :hook ((text-mode . turnon-variable-pitch)
+  	 (yaml-ts-mode . turnoff-variable-pitch)))
 #+end_src
 ** resize text across all buffers
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
@@ -1465,7 +1500,7 @@ requires CMake to compile
   that number, or create it if it doesn't already exist."
       (interactive "P")
       (require 'project)
-      (let* ((default-directory-ish (project-root (project-current t)))
+      (let* ((default-directory (project-root (project-current t)))
       	   (vterm-buffer-name (project-prefixed-buffer-name "vterm")))
         (vterm arg)))
     :bind ("C-x p s" . vterm-project))
@@ -1659,6 +1694,12 @@ Launch IRB in emacs
   	   (jest-test-command-string "source .secrets.env && npx %s jest %s %s"))
     :hook (js-mode typescript-ts-mode))
 
+  ;;; flymake-eslint
+  (use-package flymake-eslint
+    :ensure t
+    :hook ((js-mode typescript-ts-mode) . flymake-eslint-enable))
+
+
   (provide 'twem2-typescript)
 #+end_src
 
@@ -1666,7 +1707,7 @@ Launch IRB in emacs
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-terraform.el :mkdirp yes
   ;;; ...  -*- lexical-binding: t -*-
 
-  g(use-package terrgaform-mode
+  (use-package terraform-mode
     :ensure t)
 
   (provide 'twem2-terraform)
@@ -1825,24 +1866,24 @@ Anything I'm trying out
  Very useful when moving between computers forwarding emacs over ssh/X
  Promote?
  #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-   (use-package activities
-     :ensure t
-    :init
-    (activities-mode)
-    (activities-tabs-mode)
-    ;; Prevent `edebug' default bindings from interfering.
-    (setq edebug-inhibit-emacs-lisp-mode-bindings t)
+   ;; (use-package activities
+   ;;   :ensure t
+   ;;  :init
+   ;;  (activities-mode)
+   ;;  (activities-tabs-mode)
+   ;;  ;; Prevent `edebug' default bindings from interfering.
+   ;;  (setq edebug-inhibit-emacs-lisp-mode-bindings t)
 
-    :bind
-    (("C-x C-a C-n" . activities-new)
-     ("C-x C-a C-d" . activities-define)
-     ("C-x C-a C-a" . activities-resume)
-     ("C-x C-a C-s" . activities-suspend)
-     ("C-x C-a C-k" . activities-kill)
-     ("C-x C-a RET" . activities-switch)
-     ("C-x C-a b" . activities-switch-buffer)
-     ("C-x C-a g" . activities-revert)
-     ("C-x C-a l" . activities-list)))
+   ;;  :bind
+   ;;  (("C-x C-a C-n" . activities-new)
+   ;;   ("C-x C-a C-d" . activities-define)
+   ;;   ("C-x C-a C-a" . activities-resume)
+   ;;   ("C-x C-a C-s" . activities-suspend)
+   ;;   ("C-x C-a C-k" . activities-kill)
+   ;;   ("C-x C-a RET" . activities-switch)
+   ;;   ("C-x C-a b" . activities-switch-buffer)
+   ;;   ("C-x C-a g" . activities-revert)
+   ;;   ("C-x C-a l" . activities-list)))
    #+end_src
 ** TODO projection
 Try out projection: https://github.com/mohkale/projection
@@ -1960,27 +2001,38 @@ move this somewhere else
   ;; claude-code is needed for ai-code-interface
 
   ;; install required inheritenv dependency:
-  (use-package inheritenv
-    :ensure t
-    :demand t
-    :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
+  ;; (use-package inheritenv
+  ;;   :ensure t
+  ;;   :demand t
+  ;;   :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
 
-  (use-package claude-code
-    :ensure t
-    :demand t
-    :after inheritenv
-    :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest))
+  ;; (use-package claude-code
+  ;;   :ensure t
+  ;;   :demand t
+  ;;   :after inheritenv
+  ;;   :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest))
 
-  (use-package ai-code-interface
+  ;; (use-package ai-code-interface
+  ;;   :ensure t
+  ;;   :demand t
+  ;;   :after claude-code
+  ;;   :vc (:url "https://github.com/tninja/ai-code-interface.el" :rev :newest)
+  ;;   :bind ("C-c i" . ai-code-menu)
+  ;;   :config
+  ;;   (ai-code-set-backend 'codex)
+  ;;   (ai-code-magit-setup-transients)
+  ;;   (setopt codex-cli-program "/opt/homebrew/bin/codex"))
+
+  ;; claude-code-ide allows integration with emacs tools
+  ;; https://github.com/manzaltu/claude-code-ide.egl
+  (use-package claude-code-ide
     :ensure t
-    :demand t
-    :after claude-code
-    :vc (:url "https://github.com/tninja/ai-code-interface.el" :rev :newest)
-    :bind ("C-c i" . ai-code-menu)
+    :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+    :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
     :config
-    (ai-code-set-backend 'codex)
-    (ai-code-magit-setup-transients)
-    (setopt codex-cli-program "/opt/homebrew/bin/codex"))
+    (setq claude-code-ide-use-side-window t)
+    (setq claude-code-ide-debug t)
+    (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
   (provide 'twem2-ai)
 #+end_src
