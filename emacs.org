@@ -1510,12 +1510,16 @@ requires CMake to compile
 * version control module
 ** magit
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
-    ;;; ...  -*- lexical-binding: t -*-
-    (use-package magit
-      :ensure t
-      :custom
-      (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
-      (magit-bury-buffer-function #'magit-restore-window-configuration))
+  ;;; ...  -*- lexical-binding: t -*-
+  (use-package magit
+    :ensure t
+    :config
+    (magit-add-section-hook 'magit-status-sections-hook
+  			  'magit-insert-worktrees
+  			  'magit-insert-status-headers t)
+    :custom
+    (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+    (magit-bury-buffer-function #'magit-restore-window-configuration))
 #+end_src
 ** provide twem-vc
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el
@@ -2031,12 +2035,11 @@ move this somewhere else
     :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
     :config
     (setq claude-code-ide-use-side-window t)
-    (setq claude-code-ide-debug t)
     (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
 
   (provide 'twem2-ai)
-#+end_src
 * TODO IRC
+#+end_src
 This requires tidying
 
 Some interesting info: [[https://www.reddit.com/r/emacs/comments/8ml6na/tip_how_to_make_erc_fun_to_use/]]
