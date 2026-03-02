@@ -2028,16 +2028,41 @@ move this somewhere else
   ;;   (setopt codex-cli-program "/opt/homebrew/bin/codex"))
 
   ;; claude-code-ide allows integration with emacs tools
-  ;; https://github.com/manzaltu/claude-code-ide.egl
+  ;; https://github.com/manzaltu/claude-code-ide.el
   (use-package claude-code-ide
     :ensure t
     :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
     :bind ("C-c C-'" . claude-code-ide-menu) ; Set your favorite keybinding
+    :custom
+    (claude-code-ide-use-side-window t "")
+    (claude-code-ide-switch-tab-on-ediff nil "")
     :config
-    (setq claude-code-ide-use-side-window t)
-    (claude-code-ide-emacs-tools-setup)) ; Optionally enable Emacs MCP tools
+    (claude-code-ide-emacs-tools-setup)
+
+    (defun twem2-mcp-open-file (file_path &optional line)
+      "Open FILE_PATH in Emacs, optionally jumping to LINE."
+      (unless file_path
+        (error "file_path parameter is required"))
+      (find-file file_path)
+      (when line
+        (goto-char (point-min))
+        (forward-line (1- line)))
+      (format "Opened %s%s" file_path (if line (format " at line %d" line) "")))
+
+    (claude-code-ide-make-tool
+     :function #'twem2-mcp-open-file
+     :name "openFile"
+     :description "Open a file in Emacs, optionally jumping to a specific line"
+     :args '((:name "file_path"
+                    :type string
+                    :description "Absolute path to the file to open")
+             (:name "line"
+                    :type number
+                    :description "Line number to jump to (1-based)"
+                    :optional t))))
 
   (provide 'twem2-ai)
+  #+end_src
 * TODO IRC
 #+end_src
 This requires tidying
