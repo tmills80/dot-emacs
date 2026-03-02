@@ -69,6 +69,8 @@ Setting =package-enable-at-startup= to non-nil makes installed packages availabl
 
     (setq use-package-always-demand t)
   (setq use-package-verbose t)
+
+;;  (require 'org)
 #+end_src
 
 ** Initial frame settings
@@ -213,21 +215,17 @@ In both cases the files should provide a package which is loaded below
 ** Load modules
 Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
-  ;; TODO make a proper module if I like it
-  (use-package emacs-everywhere
-    :ensure t)
-
+  (require 'twem2-org)
   (require 'twem2-essentials)
   (require 'twem2-ediff)
   (require 'twem2-wsl2)
   (require 'twem2-theme)
-  (require 'twem2-org)
   (unless twem2--is-work
     (require 'twem2-email))
   (require 'twem2-completion)
   (require 'twem2-denote)
   (require 'twem2-window)
-;;  (require 'twem2-bookmarks)
+  ;;  (require 'twem2-bookmarks)
   (require 'twem2-dired)
   (require 'twem2-treesitter)
   (require 'twem2-latex)
@@ -250,7 +248,7 @@ Each module ~provides~ a package
   (unless twem2--is-work
     (require 'twem2-irc))
   (if twem2--is-work
-    (require 'twem2-ai))
+      (require 'twem2-ai))
 #+end_src
 * Essential configuration
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
