@@ -1301,40 +1301,41 @@ To use it for a language you need to install a library for that language with =t
 This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-get-started-tree-sitter
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-treesitter.el :mkdirp yes
-  ;;; ...  -*- lexical-binding: t -*-
-  (use-package emacs
-    :if (treesit-available-p)
-    :config
-    ;; Some default grammar definition sources
-    (setq treesit-language-source-alist
-     '((bash "https://github.com/tree-sitter/tree-sitter-bash")
-       (cmake "https://github.com/uyha/tree-sitter-cmake")
-       (css "https://github.com/tree-sitter/tree-sitter-css")
-       (elisp "https://github.com/Wilfred/tree-sitter-elisp")
-       (go "https://github.com/tree-sitter/tree-sitter-go")
-       (html "https://github.com/tree-sitter/tree-sitter-html")
-       (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
-       (java "https://github.com/tree-sitter/tree-sitter-java.git")
-       (json "https://github.com/tree-sitter/tree-sitter-json")
-       (make "https://github.com/alemuller/tree-sitter-make")
-       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-       (python "https://github.com/tree-sitter/tree-sitter-python")
-       (toml "https://github.com/tree-sitter/tree-sitter-toml")
-       (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
-       (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-       (yaml "https://github.com/ikatyang/tree-sitter-yaml")
-       (ruby "https://github.com/tree-sitter/tree-sitter-ruby")))
-    ;; Remap some of the modes
-    (setq major-mode-remap-alist
-          '((yaml-mode . yaml-ts-mode)
-            (bash-mode . bash-ts-mode)
-            (js-mode . js-ts-mode)
-            (typescript-mode . typescript-ts-mode)
-            (json-mode . json-ts-mode)
-            (css-mode . css-ts-mode)
-            (python-mode . python-ts-mode)
-            (go-mode . go-ts-mode)
-  	      (ruby-mode . ruby-ts-mode))))
+    ;;; ...  -*- lexical-binding: t -*-
+    (use-package emacs
+      :if (treesit-available-p)
+      :config
+      ;; Some default grammar definition sources
+      (setq treesit-language-source-alist
+       '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+         (cmake "https://github.com/uyha/tree-sitter-cmake")
+         (css "https://github.com/tree-sitter/tree-sitter-css")
+         (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+         (go "https://github.com/tree-sitter/tree-sitter-go")
+         (html "https://github.com/tree-sitter/tree-sitter-html")
+         (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+         (java "https://github.com/tree-sitter/tree-sitter-java.git")
+         (json "https://github.com/tree-sitter/tree-sitter-json")
+         (make "https://github.com/alemuller/tree-sitter-make")
+         (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+         (python "https://github.com/tree-sitter/tree-sitter-python")
+         (toml "https://github.com/tree-sitter/tree-sitter-toml")
+         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+         (yaml "https://github.com/ikatyang/tree-sitter-yaml")
+         (ruby "https://github.com/tree-sitter/tree-sitter-ruby")
+         (kotlin "https://github.com/fwcd/tree-sitter-kotlin")))
+      ;; Remap some of the modes
+      (setq major-mode-remap-alist
+            '((yaml-mode . yaml-ts-mode)
+              (bash-mode . bash-ts-mode)
+              (js-mode . js-ts-mode)
+              (typescript-mode . typescript-ts-mode)
+              (json-mode . json-ts-mode)
+              (css-mode . css-ts-mode)
+              (python-mode . python-ts-mode)
+              (go-mode . go-ts-mode)
+    	      (ruby-mode . ruby-ts-mode))))
 #+end_src
 
 ** TODO combobulate
@@ -1708,12 +1709,20 @@ Launch IRB in emacs
 
 * TODO terraform module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-terraform.el :mkdirp yes
-  ;;; ...  -*- lexical-binding: t -*-
+    ;;; ...  -*- lexical-binding: t -*-
 
-  (use-package terraform-mode
-    :ensure t)
+    (use-package terraform-mode
+      :ensure t)
 
-  (provide 'twem2-terraform)
+    (provide 'twem2-terraform)
+#+end_src
+
+* TODO android module
+Should probably split this up into language specific modules?
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-android.el :mkdirp yes
+  (use-package kotlin-ts-mode
+    :ensure t
+    :mode ("\\.kt\\'" "\\.kts\\'"))
 #+end_src
 
 * TODO project module
