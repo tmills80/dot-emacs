@@ -1746,7 +1746,7 @@ Customization or =project.el=
          (project-find-dir "Find directory")
          (vterm-project "Shell")
          (magit-project-status "Magit" "m")
-         (claude-code-ide "Claude" "'"))))
+         (claude-code-ide-menu "Claude" "'"))))
 
 
       ;; (use-package project
@@ -2039,15 +2039,29 @@ move this somewhere else
     :config
     (claude-code-ide-emacs-tools-setup)
 
+    (defvar twem2-mcp-open-file-allowed-directories
+      (list (expand-file-name "~"))
+      "List of directory prefixes that `twem2-mcp-open-file' is allowed to open.
+Each entry should be an absolute expanded path.  Any file whose expanded
+path starts with one of these directories is permitted.")
+
     (defun twem2-mcp-open-file (file_path &optional line)
-      "Open FILE_PATH in Emacs, optionally jumping to LINE."
+      "Open FILE_PATH in Emacs, optionally jumping to LINE.
+FILE_PATH must be an absolute path within `twem2-mcp-open-file-allowed-directories'."
       (unless file_path
         (error "file_path parameter is required"))
-      (find-file file_path)
-      (when line
-        (goto-char (point-min))
-        (forward-line (1- line)))
-      (format "Opened %s%s" file_path (if line (format " at line %d" line) "")))
+      (let ((expanded (file-truename file_path)))
+        (unless (file-name-absolute-p expanded)
+          (error "file_path must be an absolute path: %s" file_path))
+        (unless (cl-some (lambda (dir)
+                           (string-prefix-p (file-truename dir) expanded))
+                         twem2-mcp-open-file-allowed-directories)
+          (error "file_path is outside allowed directories: %s" file_path))
+        (find-file expanded)
+        (when line
+          (goto-char (point-min))
+          (forward-line (1- line)))
+        (format "Opened %s%s" expanded (if line (format " at line %d" line) ""))))
 
     (claude-code-ide-make-tool
      :function #'twem2-mcp-open-file
@@ -2075,6 +2089,8 @@ Numeric message types can be found in the spec, or [[https://modern.ircdocs.hors
 
   (use-package erc
       :custom
+      (erc-server "irc.libera.chat")
+      (erc-port 6697)
       (erc-autojoin-channels-alist
        '((Libera.Chat "#org-mode" "#emacs-beginners" "#emacs-til" "#emacs" "#systemcrafters")))
       (erc-hide-list '("JOIN" "PART" "QUIT"))
