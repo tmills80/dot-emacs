@@ -320,6 +320,11 @@ Requires emacs 31+
   (add-hook 'before-save-hook
   	  'delete-trailing-whitespace)
 #+end_src
+*** auto-revert-mode
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  (global-auto-revert-mode)
+#+end_src
 ** end of use-package
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
 )
