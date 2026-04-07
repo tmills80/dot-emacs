@@ -1385,9 +1385,17 @@ some corfu customization (see https://github.com/minad/corfu/wiki)
     :after cape
     :bind (:map eglot-mode-map
                 ("C-<return>" . eglot-code-actions))
-    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode) . eglot-ensure)
+    :hook ((python-ts-mode python-mode typescript-ts-mode js-ts-mode js-mode ruby-mode ruby-ts-mode kotlin-mode kotlin-ts-mode) . eglot-ensure)
   					;:config (add-to-list 'eglot-server-programs '((ruby-mode ruby-ts-mode) "ruby-lsp"))
-    )
+    :custom
+    (eglot-autoshutdown t)
+    (eglot-extend-to-xref t)
+    (eglot-sync-connect 1)
+    (eglot-connect-timeout 60)
+    (eglot-report-progress t)
+    :config
+    (add-to-list 'eglot-server-programs
+                 '((kotlin-ts-mode kotlin-mode) . ("bash" "/home/tristan/.local/bin/kotlin-lsp.sh" "--stdio"))))
 
 
   ;;  (require 'eglot-config)
