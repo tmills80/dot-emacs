@@ -210,6 +210,7 @@ In both cases the files should provide a package which is loaded below
   (require 'twem2-org-latex)
   (require 'asdf)
   (require 'twem2-run-test)
+  (require 'twem2-scratch)
   (asdf-enable)
 #+end_src
 ** Load modules
@@ -1985,25 +1986,6 @@ move this somewhere else
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
   (use-package jsonnet-mode
     :ensure t)
-#+end_src
-** TODO ead
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-  (use-package eaf
-    :load-path "~/.emacs.d/site-lisp/emacs-application-framework"
-    :custom ; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
-    (eaf-browser-continue-where-left-off t)
-    (eaf-browser-enable-adblocker t)
-    (browse-url-browser-function 'eaf-open-browser)
-    :config
-    (defalias 'browse-web #'eaf-open-browser)
-    (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
-    (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-    (eaf-bind-key nil "M-q" eaf-browser-keybinding)) ;; unbind, see more in the Wiki
-
-  (require 'eaf-browser)
-  (require 'eaf-pdf-viewer)
-  (require 'eaf-markdown-previewer)
 #+end_src
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
