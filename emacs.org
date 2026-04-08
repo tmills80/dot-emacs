@@ -1528,6 +1528,13 @@ requires CMake to compile
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
     (magit-bury-buffer-function #'magit-restore-window-configuration))
 #+end_src
+** git gutter
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
+  (use-package git-gutter
+   :ensure t
+   :config
+   (git-gutter-mode t))
+#+end_src
 ** provide twem-vc
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el
 (provide 'twem2-vc)
