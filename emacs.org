@@ -2151,7 +2151,37 @@ This code from [[https://www.emacswiki.org/emacs/ErcBar]] puts a bar at the last
 
   (provide 'twem2-irc)
 #+end_src
-*
+* Custom lisp
+** twem2-org-latex
+Helper for inserting LaTeX brackets in org-mode.
+#+begin_src emacs-lisp :tangle twem2-lisp/twem2-org-latex.el
+;;; twem2-org-latex.el --- Functions to make writing LaTeX in org-mode easier -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2025 Tristan Mills
+
+;; Author: Tristan Mills <tristan@eridu.org.uk>
+;; Version: 0.1
+
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
+
+;; Provides `twem2-org-latex-insert-brackets' which inserts \(\) and
+;; places the cursor between the brackets for convenient LaTeX input
+;; in org-mode.
+
+;;; Code:
+
+;;;###autoload
+(defun twem2-org-latex-insert-brackets ()
+  "Insert \\(\\) and move the the center of that."
+  (interactive)
+  (insert "\\(\\)")
+  (backward-char 2))
+
+(provide 'twem2-org-latex)
+;;; twem2-org-latex.el ends here
+#+end_src
 * ------ below here is not yet brought in ------
 
 ** TODO things to try out
