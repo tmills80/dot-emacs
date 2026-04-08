@@ -2988,7 +2988,7 @@ Options for this:
   + Use hooks similar to those on the above wiki page
   + Set the variables using the mu4e context
 
-**  mu4e
+*  mu4e
 Again, actual config is not in this repository, but I make extensive use of custom bookmarks and folders.
 There's also some tweaks such as in this example:
 #+begin_example emacs-lisp
