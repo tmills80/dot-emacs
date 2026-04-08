@@ -1342,7 +1342,7 @@ This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-g
             (css-mode . css-ts-mode)
             (python-mode . python-ts-mode)
             (go-mode . go-ts-mode)
-  	  g(ruby-mode . ruby-ts-mode))))
+  	  (ruby-mode . ruby-ts-mode))))
 #+end_src
 
 ** TODO combobulate
@@ -1948,14 +1948,14 @@ Will require a fair amount of work it looks like
 Using the conifg below sort of works, but its not a pleasant experience
 
 #+begin_src emacs-lisp #:tangle twem2-config-modules/twem2-trial.el
-        (use-package emacs-everywhere
-          :ensure t
-          :custom
-          (emacs-everywhere-paste-command nil "Don't paste, it doesn't seem to work")
-          (emacs-everywhere-copy-command nil "Doesn't seem to work")
-          (emacs-everywhere-window-focus-command (list "powershell.exe" "-NoProfile" "-command"
-                           "& {Add-Type 'using System; using System.Runtime.InteropServices; public class Tricks { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); }'; [tricks]::SetForegroundWindow(%w) }") "Going back to Windows")
-  	(emacs-everywhere-app-info-function #'emacs-everywhere--app-info-windows))
+  (use-package emacs-everywhere
+    :disabled
+    :custom
+    (emacs-everywhere-paste-command nil "Don't paste, it doesn't seem to work")
+    (emacs-everywhere-copy-command nil "Doesn't seem to work")
+    (emacs-everywhere-window-focus-command (list "powershell.exe" "-NoProfile" "-command"
+                     "& {Add-Type 'using System; using System.Runtime.InteropServices; public class Tricks { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); }'; [tricks]::SetForegroundWindow(%w) }") "Going back to Windows")
+  (emacs-everywhere-app-info-function #'emacs-everywhere--app-info-windows))
 #+end_src
 ** TODO hyperbole
 https://www.gnu.org/software/hyperbole
