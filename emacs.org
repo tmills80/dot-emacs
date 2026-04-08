@@ -2182,6 +2182,55 @@ Helper for inserting LaTeX brackets in org-mode.
 (provide 'twem2-org-latex)
 ;;; twem2-org-latex.el ends here
 #+end_src
+** twem2-run-test
+Guess and run the test file for the current buffer using compile.
+#+begin_src emacs-lisp :tangle twem2-lisp/twem2-run-test.el
+;;; twem2-run-test.el --- Guess and run test files using compile -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2025 Tristan Mills
+
+;; Author: Tristan Mills <tristan@eridu.org.uk>
+;; Version: 0.1
+
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
+
+;; Provides `run-test' which guesses the test file name from the
+;; current buffer (assuming TypeScript conventions with __tests__/
+;; and .test.ts suffixes) and runs it via `task run-tests'.
+;; With a prefix argument, re-runs the last test instead.
+
+;;; Code:
+
+(defvar twem2/last-test nil)
+
+(defun twem2/get-test-file (&optional use-last)
+  "Guess the test name from the buffername.
+Only works for typescript projects, and assumes the buffername is the filename
+ues-last will return the last test run."
+  (if (and use-last twem2/last-test)
+      twem2/last-test
+    (let ((file (apply 'file-name-concat (last (file-name-split (buffer-file-name)) 2))))
+    (if (string-search ".test." file)
+	 file
+      (concat (car (split-string file ".ts")) ".test.ts")))))
+
+(defun run-test (run-last)
+  "Run the test associated with the current file.
+
+With a prefix argument this will run the last test.
+Currently this requires the selected buffer to be associated with the current project."
+  (interactive "P")
+  (let* ((test-file (twem2/get-test-file run-last))
+	 (compile-command (format "task run-tests -- %s" (shell-quote-argument test-file))))
+    (progn
+      (call-interactively (compile compile-command))
+      (setq twem2/last-test test-file))))
+
+(provide 'twem2-run-test)
+;;; twem2-run-test.el ends here
+#+end_src
 * ------ below here is not yet brought in ------
 
 ** TODO things to try out
