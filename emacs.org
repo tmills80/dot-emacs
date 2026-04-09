@@ -399,32 +399,27 @@ ef-themes has several very nice themes
 https://protesilaos.com/emacs/ef-themes
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el :mkdirp yes
-    ;;; ...  -*- lexical-binding: t -*-
-    (use-package ef-themes
-      :ensure t
-      :config
-      ;; disable any themes to avoid any clashes
-      (mapc #'disable-theme custom-enabled-themes)
-      ;; customizations from modus themes now ef-themes is based on them
-      (setq modus-themes-bold-constructs t)
-      (setq modus-themes-italic-constructs t)
-      (setq modus-themes-include-derivatives-mode t)
-      ;; two themes to toggle between
-      (setq ef-themes-to-toggle '(ef-spring ef-autumn))
-      (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
-            ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
-      ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
-      (if (not twem2--is-work)
-          (modus-themes-select 'ef-spring)
-        (modus-themes-select 'ef-cyprus)))
-    ;; ef-cyprus duo-light ef-frost ef-light
+;;; twem2-theme.el --- Theming configuration -*- lexical-binding: t -*-
 
-#+end_src
-
-Bind =<f5>= to the toggle function
-#+name: toggle theme
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
-(define-key global-map (kbd "<f5>") #'ef-themes-toggle)
+(use-package ef-themes
+  :ensure t
+  :bind (("<f5>" . ef-themes-toggle))
+  :config
+  ;; disable any themes to avoid any clashes
+  (mapc #'disable-theme custom-enabled-themes)
+  ;; customizations from modus themes now ef-themes is based on them
+  (setq modus-themes-bold-constructs t)
+  (setq modus-themes-italic-constructs t)
+  (setq modus-themes-include-derivatives-mode t)
+  ;; two themes to toggle between
+  (setq ef-themes-to-toggle '(ef-spring ef-autumn))
+  (setq ef-themes-mixed-fonts t            ;; Allow mixed fonts (eg. in Org mode code blocks)
+        ef-themes-variable-pitch-ui nil)   ;; Don't make the whole UI variable pitch, things start to misalign
+  ;; load the theme. using `ef-themes-select` runs `ef-themes-post-load-hook`
+  (if (not twem2--is-work)
+      (modus-themes-select 'ef-spring)
+    (modus-themes-select 'ef-cyprus)))
+;; ef-cyprus duo-light ef-frost ef-light
 #+end_src
 ** fontaine settings
 Another prot project:  <https://protesilaos.com/emacs/fontaine>
