@@ -253,131 +253,83 @@ Each module ~provides~ a package
     (require 'twem2-android))
 #+end_src
 * Essential configuration
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-;;; ...  -*- lexical-binding: t -*-
-#+end_src
-Things which are currently essential and will always be loaded
+Things which are currently essential and will always be loaded.
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
-  (use-package emacs
-    :ensure t
-;;    :diminish auto-revert-mode
-#+end_src
-** Bindings
-Rebind =M-i= to =imenu=
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-     :bind (("M-i" . imenu)
-            ("<f11>" . nil))
-#+end_src
-** emacs customization
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+;;; twem2-essentials.el --- Essential configuration -*- lexical-binding: t -*-
+
+(use-package emacs
+  :ensure t
+  ;; Rebind M-i to imenu
+  :bind (("M-i" . imenu)
+         ("<f11>" . nil)
+         ("C-z" . nil))
   :custom
-#+end_src
-*** visible-bell
-Use visible bell rather than making a noise (could turn off completely?)
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  ;; Use visible bell rather than making a noise
   (visible-bell t)
-#+end_src
-*** use tab for completion and indentationn
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-(tab-always-indent 'complete)
-#+end_src
-*** highlight the current error
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-(next-error-message-highlight t)
-#+end_src
-*** Minor modes to hide
-Requires emacs 31+
-#+begin_src emacs-lisp :tangle  twem2-config-modules/twem2-essentials.el
+  ;; Use tab for completion and indentation
+  (tab-always-indent 'complete)
+  ;; Highlight the current error
+  (next-error-message-highlight t)
+  ;; Turn on column-number-mode
+  (column-number-mode t)
+  :config
+  ;; Minor modes to hide (requires emacs 31+)
   (setq mode-line-collapse-minor-modes
         '(eldoc-mode
-  	buffer-face-mode
-  	auto-revert-mode
-  	org-indent-mode
-  	smartparens-mode
-  	subword-mode
-  	jest-test-mode
-  	which-key-mode
-  	eldoc-mode))
+          buffer-face-mode
+          auto-revert-mode
+          org-indent-mode
+          smartparens-mode
+          subword-mode
+          jest-test-mode
+          which-key-mode
+          eldoc-mode))
   (setq mode-line-collapse-minor-modes-to "")
-#+end_src
-*** Turn on column-number-mode
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-(column-number-mode t)
-#+end_src
-** emacs variables and other config
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-:config
-#+end_src
-*** Turn off backups & lock files
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  ;; Turn off backups & lock files
   (setq make-backup-files nil)
   (setq create-lockfiles nil)
-#+end_src
-*** Make ~compile-mode~ use ANSI colours
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-(add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
-#+end_src
-*** Strip whitespace on save
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+  ;; Make compile-mode use ANSI colours
+  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+  ;; Strip whitespace on save
   (add-hook 'before-save-hook
-  	  'delete-trailing-whitespace)
-#+end_src
-*** auto-revert-mode
+            'delete-trailing-whitespace)
+  ;; auto-revert-mode
+  (global-auto-revert-mode))
 
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-  (global-auto-revert-mode)
-#+end_src
-** end of use-package
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-)
-#+end_src
-** set a dictionary for =ispell-lookup-words= to use
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-  (when (eq system-type 'gnu/linux)
-    (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
-#+end_src
-** which-key
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-  (use-package which-key
-    :ensure t
-;    :diminish which-key-mode
-    :config
-    (setq which-key-idle-delay 0.3)
-    (setq which-key-popup-type 'minibuffer)
-    (which-key-mode))
-#+end_src
-** TODO helpful
-Provides better =*help*= buffer with colours, references, source code and more
+;; Set a dictionary for ispell-lookup-words to use
+(when (eq system-type 'gnu/linux)
+  (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
 
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-  (use-package helpful
-    :ensure t
-    :bind (([remap describe-function] . helpful-callable)
-           ([remap describe-key] . helpful-key)
-           ([remap describe-variable] . helpful-variable)
-           ([remap describe-command] . helpful-command)
-           ("C-c C-d" . helpful-at-point)))
-#+end_src
-** flymake customization
-Emacs's built in error checker. Eglot will use it to highlight errors
+;; which-key
+(use-package which-key
+  :ensure t
+  :config
+  (setq which-key-idle-delay 0.3)
+  (setq which-key-popup-type 'minibuffer)
+  (which-key-mode))
 
-I've added soeme useful key-bindings to navigate errors quicker (also useful is =consult-flymake= bound to =M-g f=)
+;; helpful - better *help* buffer with colours, references, source code and more
+(use-package helpful
+  :ensure t
+  :bind (([remap describe-function] . helpful-callable)
+         ([remap describe-key] . helpful-key)
+         ([remap describe-variable] . helpful-variable)
+         ([remap describe-command] . helpful-command)
+         ("C-c C-d" . helpful-at-point)))
 
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-  (use-package flymake
-    :ensure t
-    :bind (:map flymake-mode-map
-                ("M-p" . flymake-goto-prev-error)
-                ("M-n" . flymake-goto-next-error)))
-#+end_src
-** display line numbers
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
-  (use-package emacs
-    :ensure t
-    :hook ((prog-mode text-mode) . display-line-numbers-mode))
-#+end_src
-** provide essentials
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el
+;; flymake - built-in error checker, used by eglot
+;; Also useful: consult-flymake bound to M-g f
+(use-package flymake
+  :ensure t
+  :bind (:map flymake-mode-map
+              ("M-p" . flymake-goto-prev-error)
+              ("M-n" . flymake-goto-next-error)))
+
+;; Display line numbers in prog and text modes
+(use-package emacs
+  :ensure t
+  :hook ((prog-mode text-mode) . display-line-numbers-mode))
+
 (provide 'twem2-essentials)
 #+end_src
 * Ediff configuration
