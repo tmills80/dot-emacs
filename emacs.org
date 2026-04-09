@@ -1590,17 +1590,22 @@ On Windows, the font will still have to be installed manually
   (provide 'twem2-icons)
 #+end_src
 * TODO general programming module
+** Smart Parens
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-programming.el
-    ;;; ...  -*- lexical-binding: t -*-
-    (use-package smartparens
-       :ensure t
-       :hook (prog-mode text-mode markdown-mode)
-       :config
-       (require 'smartparens-config))
-
-    (use-package emacs
-      :mode (("\\.avsc" . json-ts-mode))
-      :hook (typescript-ts-mode . subword-mode))
+;;; ...  -*- lexical-binding: t -*-
+  (use-package smartparens
+    :ensure t
+    :hook (prog-mode text-mode markdown-mode)
+    :config
+    (require 'smartparens-config)
+    (sp-use-smartparens-bindings))
+#+end_src
+** Misc
+  #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-programming.el
+      ;;; ...  -*- lexical-binding: t -*-
+      (use-package emacs
+        :mode (("\\.avsc" . json-ts-mode))
+        :hook (typescript-ts-mode . subword-mode))
 
     (require 'twem2-lint-fix)
 
