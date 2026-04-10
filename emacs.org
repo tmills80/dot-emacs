@@ -54,23 +54,15 @@ You'll notice quite a few I use
   ;;; ...  -*- lexical-binding: t -*-
 #+end_src
 
-** TODO fix for mac path
-#+begin_src emacs-lisp :tangle early-init.el
- ;; (setenv "PATH" "/Users/tristanmills/Library/pnpm:/Users/tristanmills/.asdf/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/coreutils/libexec/gnubin:/opt/homebrew/opt/python@3.13/libexec/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities")
- ;; (setq exec-path (split-string (getenv "PATH") path-separator))
-#+end_src
-
 ** Package initialization
 Setting =package-enable-at-startup= to non-nil makes installed packages available in =init.el=
 
 #+begin_src emacs-lisp :tangle early-init.el
   ;; Initialise installed packages
-  (setq package-enable-at-startup t)
+  (setopt package-enable-at-startup t)
 
-    (setq use-package-always-demand t)
-  (setq use-package-verbose t)
-
-;;  (require 'org)
+  ;; I don't care about lazy loading. I don't restart emacs very often.
+  (setopt use-package-always-demand t)
 #+end_src
 
 ** Initial frame settings
@@ -82,41 +74,57 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
   (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
   ;; Do not resize the frame
-  (setq frame-inhibit-implied-resize t)
+  (setopt frame-inhibit-implied-resize t)
 
-  ;; Disable GUI elements
-  ;;(menu-bar-mode -1)   ; I like the menu bar for discovery
+  ;; enable menu bar mode
+  ;; It doesn't take up much space and can be useful occasionally
+  (menu-bar-mode 1)
+
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
-  (setq inhibit-startup-screen t)
-  (setq use-dialog-box t)                 ; only used for mouse events
-  (setq use-file-dialog nil)              ; don't ever use this
+  (setopt inhibit-startup-screen t)
+  (setopt use-dialog-box t)                 ; only used for mouse events
+  (setopt use-file-dialog nil)              ; don't ever use this
 
-  (setq inhibit-startup-echo-area-message "tristan") ; read the docstring
+  ;; Usage varies between home and work
+  ;; For example, I don't want mu4e or elfeed at work
+  (defvar twem2--is-work
+    nil
+    "Is this running on a work computer?")
 
-  (setq inhibit-startup-buffer-menu t)
+  ;; Work computer is a mac
+  (when (eq system-type 'darwin)
+    (setq twem2--is-work 't))
+
+  (defvar twem2--username
+    "tristan"
+    "My username varies between work and home")
+
+  (when twem2--is-work
+    (setq twem2--username "tristanmills"))
+
+
+  ;; I don't care about seeing this.
+  ;; To disable it, it's value must match my name
+  (eval '(setopt inhibit-startup-echo-area-message twem2--username))
+
+  (setopt inhibit-startup-buffer-menu t)
  #+end_src
 
-
-** Turn off native compilation warnings
-Should this be in =init.el=?
-#+begin_src emacs-lisp :tangle early-init.el
-  (setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
-#+end_src
 
 * The main Emacs initialization file: =init.el=
 
 #+begin_src emacs-lisp :tangle init.el
 ;;; ...  -*- lexical-binding: t -*-
 #+end_src
+
+** Turn off native compilation warnings
+#+begin_src emacs-lisp :tangle init.el
+  (setq native-comp-async-report-warnings-errors 'silent) ; emacs28 with native compilation
+#+end_src
+
 ** TODO options to enable or disable loading of modules
 
-** Variables to select based on home vs work
-#+begin_src emacs-lisp :tangle init.el
-    (defvar twem2--is-work nil "Is this running on a work computer. I only use a Mac at work")
-    (when (eq system-type 'darwin)
-      (setq twem2--is-work 't))
-#+end_src
 ** Confirm kill
 I have a habit of fat fingering =C-x C-c=
 #+begin_src emacs-lisp :tangle init.el
