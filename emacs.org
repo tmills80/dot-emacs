@@ -1755,17 +1755,25 @@ casual provides transient menus for many modes, exposing the functionality in a 
   (use-package casual
     :ensure t
     :after (calc ibuffer)
-    :bind (:map calc-mode-map ("C-o" . casual-calc-tmenu)
-    	      :map dired-mode-map ("C-o" . casual-dired-tmenu)
-    	      :map isearch-mode-map ("C-o" . casual-isearch-tmenu)
-    	      :map ibuffer-mode-map
-    	      ("C-o" . casual-ibuffer-tmenu)
-     	      ("F" . casual-ibuffer-filter-tmenu)
-    	      ("s" . casual-ibuffer-sortby-tmenu)
-    	      :map Info-mode-map ("C-o" . casual-info-tmenu)
-    	      :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
-    	      :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
-    	      :map org-agenda-mode-map ("C-o" . casual-agenda-tmenu)))
+    :bind (;; global keymap for EditKit
+  	 ("C-o" . casual-editkit-main-tmenu)
+  	 :map calc-mode-map ("C-o" . casual-calc-tmenu)
+  	 :map compilation-mode-map ("C-o" . casual-compile-tmenu)
+  	 :map grep-mode-map ("C-o" . casual-compile-tmenu)
+  	 :map dired-mode-map ("C-o" . casual-dired-tmenu)
+  	 :map emacs-lisp-mode-map ("C-c o" . casual-elisp-tmenu)
+  	 :map help-mode-map ("C-o" . causual-help-tmenu)
+  	 :map helpful-mode-map ("C-o" . casual-help-tmenu)
+  	 :map isearch-mode-map ("C-o" . casual-isearch-tnu)
+  	 :map ibuffer-mode-map
+  	 ("C-o" . casual-ibuffer-tmenu)
+  	 ("F" . casual-ibuffer-filter-tmenu)
+  	 ("s" . casual-ibuffer-sortby-tmenu)
+  	 :map Info-mode-map ("C-o" . casual-info-tmenu)
+  	 :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
+  	 :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
+  	 :map org-mode-map ("C-c o" . casual-org-tmenu)
+  	 :map org-table-fedit-map ("C-c o" . casual-org-table-fedit-tmenu)))
 #+end_src
 ** casual-avy
 transient menu for avy (maybe I'll use it more)
