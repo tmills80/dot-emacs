@@ -41,12 +41,16 @@ There's also quite a few blogs where I find things
 + [[file:elfeed.org::*Emacs][My emacs blog feed]]
 + [[https://karl-voit.at/][Karl Voit]] is a very useful blog for using Org mode
 
++ [[https://emacsredux.com/blog/2026/04/07/stealing-from-the-best-emacs-configs/]]
+
 *** Prot's configuration
 I've taken a fair amount from Prot's fantastically documented Emacs configuration. Especially the module system.
 I can't recommend going through this enough: [[https://protesilaos.com/emacs/dotemacs][<https://protesilaos.com/emacs/dotemacs>]]
 
 Whilst there you should look at Prot's many, exceedingly useful, packages. They're fantastically documented, and the code is well organized.
 You'll notice quite a few I use
+
+
 
 * Early initialization of Emacs
 =early-init.el= is run early in the Emacs startup process.  See [[info:emacs#Early Init File][emacs#Early Init File]]
@@ -213,6 +217,51 @@ In both cases the files should provide a package which is loaded below
    (add-to-list 'load-path (locate-user-emacs-file string)))
  '("twem2-lisp" "twem2-config-modules"))
 #+end_src
+** Disable Biderection Test Scanning
+I don't ever displya right-to-left text. This snippet forces emacs to assume
+left-to-right everywhere, skipping the algorithm to support it.
+Probably not much more efficient on small files, but on very large ones it'll
+have and impact
+#+begin_src emacs-lisp :tangle init.el
+  (setq-default bidi-display-reordering 'left-to-right
+  	      bidi-paragraph-direction 'left-to-right)
+
+  (setopt bidi-inhibit-bpa t)
+#+end_src
+** Increate Process Output Buffer
+The default is 64kB. LSP servers can send far bigger responses, several MB in
+some cases.
+This will reduce the number of read calls needed, making eglot more efficient
+
+#+begin_src emacs-lisp :tangle init.el
+  (setopt read-process-output-max (* 4 1024 1024))
+#+end_src
+** Kill Ring
+*** Save the Clipboard before killing
+If you copy from another application and then kill something in emacs then
+the clipboard value will be overwritten, and will be lost.
+This saves the clipboard value to the kill ring
+#+begin_src emacs-lisp :tangle init.el
+  (setopt save-interprogram-paste-before-kill t)
+#+end_src
+*** No duplicates in the kill ring
+#+begin_src emacs-lisp :tangle init.el
+  (setopt kill-do-not-save-duplicates t)
+#+end_src
+** savehist-mode
+Save the minibuffer history between sessions
+Additionally save the kill-ring, search-ring, and regexp-search-ring
+#+begin_src emacs-lisp :tangle init.el
+  (setopt savehist-file (locate-user-emacs-file "savehist"))
+  (setopt history-length 100)
+  (setopt history-delete-duplicates t)
+  (setopt savehist-save-minibuffer-history t)
+  (setopt savehist-additional-variables
+  	'(search-ring regexp-search-ring kill-ring))
+  (savehist-mode t)
+#+end_src
+
+
 ** Load personal lisp packages
 #+begin_src emacs-lisp :tangle init.el
   (require 'twem2-org-latex)
@@ -1212,6 +1261,14 @@ If buffers have similar names, use a more useful way to distinguish them
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el
 (setq uniquify-buffer-name-style 'forward)
 #+end_src
+** Proportional window resizing
+When splitting a window, usually the current window gets split in half resulting
+in increasinly smaller windows.
+This resizes them to be proportional
+#+begin_src emacs-lisp :tangle init.el
+  (setopt window-combination-resize t)
+#+end_src
+
 ** Provide twem2-window
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el
 (provide 'twem2-window);
