@@ -1389,9 +1389,31 @@ https://github.com/emacs-tree-sitter/treesit-fold
 * TODO eglot module
 Currently I just use eglot as is - I will need to do some configuration at some point. Particularly key bindings, auto starting and
 some corfu customization (see https://github.com/minad/corfu/wiki)
-** Configure eglot
+** TypeScript server auto-detection
+Detect whether to use ESLint or Biome with typescript-language-server
+via [[https://github.com/joaotavora/rassumfrassum][rassumfrassum]]. Prefers Biome when both configs are present.
+
+The ~eslint-language-server~ can be installed with the ~vscode-langservers-extracted~ npm package
+
+Install ~rassumfrassum~ with ~pipx install rassumfrassum~
+
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el :mkdirp yes
   ;;; ...  -*- lexical-binding: t -*-
+  (defun twem2/ts-server-contact (interactive)
+    "Return eglot contact for TypeScript, auto-detecting linter."
+    (let* ((root (project-root (project-current t)))
+           (has-biome (or (file-exists-p (expand-file-name "biome.json" root))
+                          (file-exists-p (expand-file-name "biome.jsonc" root))))
+           (has-eslint (or (directory-files root nil "^eslint\\.config\\." t)
+                           (directory-files root nil "^\\.eslintrc" t))))
+      (cond
+       (has-biome '("rass" "tsbiome"))
+       (has-eslint '("rass" "tslint"))
+       (t '("typescript-language-server" "--stdio")))))
+#+end_src
+
+** Configure eglot
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-eglot.el
   (use-package eglot
     :ensure t
     :after cape
@@ -1407,7 +1429,9 @@ some corfu customization (see https://github.com/minad/corfu/wiki)
     (eglot-report-progress t)
     :config
     (add-to-list 'eglot-server-programs
-                 '((kotlin-ts-mode kotlin-mode) . ("bash" "/home/tristan/.local/bin/kotlin-lsp.sh" "--stdio"))))
+                 '((kotlin-ts-mode kotlin-mode) . ("bash" "/home/tristan/.local/bin/kotlin-lsp.sh" "--stdio")))
+    (add-to-list 'eglot-server-programs
+                 '((typescript-ts-mode js-ts-mode js-mode) . twem2/ts-server-contact)))
 
 
   ;;  (require 'eglot-config)
