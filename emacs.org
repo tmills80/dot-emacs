@@ -1269,6 +1269,59 @@ This resizes them to be proportional
   (setopt window-combination-resize t)
 #+end_src
 
+** Highlight active window
+Visually distinguish the active window by colouring the fringe and header line
+to match the modeline. The fringe is only shown on the selected window, and the
+header line face is remapped per-buffer so inactive windows stay dim.
+
+Window dividers are also coloured to match the modeline.
+
+Colors update automatically on theme change via =ef-themes-post-load-hook=.
+
+This works alongside =spacious-padding= by using =face-remap-add-relative= to
+layer our colors on top of the existing face attributes (preserving the =:box=
+padding). Window divider colors are set after =spacious-padding= via hook depth.
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el
+    (defvar-local twem2--header-line-cookie nil
+      "Cookie for the active window header-line face remap.")
+
+    (defun twem2--window-accent-modeline-bg ()
+      "Return the current mode-line background color."
+      (face-background 'mode-line nil t))
+
+    (defun twem2--selected-window-accent ()
+      "Show fringe and accent header-line on the selected window only.
+  Preserves existing header-line-format (e.g. breadcrumb-mode) and only
+  sets a minimal format in buffers that don't already have one.
+  Uses face-remap-add-relative to layer on top of spacious-padding."
+      (let ((ml-bg (twem2--window-accent-modeline-bg))
+            (ml-fg (face-foreground 'mode-line nil t)))
+        (walk-windows
+         (lambda (window)
+           (let ((buf (window-buffer window)))
+             (with-current-buffer buf
+               ;; Skip ediff control buffers — they're too small for a header
+               (unless (derived-mode-p 'ediff-mode)
+                 ;; Remove any existing accent remap
+                 (when twem2--header-line-cookie
+                   (face-remap-remove-relative twem2--header-line-cookie)
+                   (setq twem2--header-line-cookie nil))
+                 ;; Ensure a header-line exists
+                 (unless header-line-format
+                   (setq-local header-line-format " "))
+                 (if (eq window (selected-window))
+                     (let ((header-width (or (plist-get spacious-padding-widths :header-line-width) 4)))
+                       (setq twem2--header-line-cookie
+                             (face-remap-add-relative 'header-line
+                                                      :background ml-bg
+                                                      :foreground ml-fg
+                                                      :box `(:line-width ,header-width :color ,ml-bg :style nil))))))))))
+         nil t))
+
+    (add-hook 'window-state-change-hook #'twem2--selected-window-accent)
+#+end_src
+
 ** Provide twem2-window
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-window.el
 (provide 'twem2-window);
@@ -1540,6 +1593,7 @@ in =~/.emacs.d/elpa/eat-xxx/= run =/usr/bin/tic -x terminfo.ti=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
   ;;; ...  -*- lexical-binding: t -*-
   (use-package eat
+    :disabled true
     :ensure t
     ;; :bind ("C-x p s" . eat-project)
     )
