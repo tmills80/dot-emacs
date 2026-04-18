@@ -115,7 +115,6 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
   (setopt inhibit-startup-buffer-menu t)
  #+end_src
 
-
 * The main Emacs initialization file: =init.el=
 
 #+begin_src emacs-lisp :tangle init.el
@@ -136,13 +135,15 @@ I have a habit of fat fingering =C-x C-c=
 #+end_src
 
 ** Put Custom changes in their own file
-By default Emacs save anything from =M-x customize= at the end of the init file. I never want this, my init files should only contain code I have written
-Should this go in a temporary file so I never have to worry about it?
-#+begin_src emacs-lisp :tangle init.el
-  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
-;  (load custom-file)  ; disable as I don't use customization so there should be nothing in there!
-#+end_src
+By default Emacs save anything from =M-x customize= at the end of the init file.
+I never want this, my init files should only contain code I have written
 
+Here I send it to a temporary file so they are never persisted and I don't need
+to worry about it.
+
+#+begin_src emacs-lisp :tangle init.el
+  (setopt custom-file (make-temp-file "emacs-custom-"))
+#+end_src
 ** Set up packages
 I use =package.el= to install packages. This is built-in.
 I did try =straight.el=, but it complicated things too much for too little benefit. Looking at other alternatives,
