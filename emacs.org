@@ -201,6 +201,9 @@ This doesn't actually appear to work for ~built-in~ but I want to document that 
   ;(setq package-pinned-packages '((use-package . "gnu-elpa-devel")))
 #+end_src
 ** install diminish for use with use-package
+emacs 31 has built in support for hiding modes in the minibuffer
+see ~mode-line-collapse-minor-modes~
+
 #+begin_src emacs-lisp :tangle init.el
 ;;        (use-package diminish
 ;;          :ensure t)
@@ -330,6 +333,8 @@ Things which are currently essential and will always be loaded.
   (next-error-message-highlight t)
   ;; Turn on column-number-mode
   (column-number-mode t)
+  ;; Select the help window when its opened
+  (help-window-select t)
   :config
   ;; Minor modes to hide (requires emacs 31+)
   (setq mode-line-collapse-minor-modes
@@ -1919,7 +1924,7 @@ casual provides transient menus for many modes, exposing the functionality in a 
   	 ("C-o" . casual-editkit-main-tmenu)
   	 :map calc-mode-map ("C-o" . casual-calc-tmenu)
   	 :map compilation-mode-map ("C-o" . casual-compile-tmenu)
-  	 :map grep-mode-map ("C-o" . casual-compile-tmenu)
+  	 ;:map grep-mode-map ("C-o" . casual-compile-tmenu)
   	 :map dired-mode-map ("C-o" . casual-dired-tmenu)
   	 :map emacs-lisp-mode-map ("C-c o" . casual-elisp-tmenu)
   	 :map help-mode-map ("C-o" . causual-help-tmenu)
@@ -1930,9 +1935,10 @@ casual provides transient menus for many modes, exposing the functionality in a 
   	 ("F" . casual-ibuffer-filter-tmenu)
   	 ("s" . casual-ibuffer-sortby-tmenu)
   	 :map Info-mode-map ("C-o" . casual-info-tmenu)
-  	 :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
+;;  	 :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
   	 :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
   	 :map org-mode-map ("C-c o" . casual-org-tmenu)
+  	 ("C-o" . casual-editkit-main-tmenu)
   	 :map org-table-fedit-map ("C-c o" . casual-org-table-fedit-tmenu)))
 #+end_src
 ** casual-avy
@@ -1956,6 +1962,7 @@ Somethings wrong here - investigate
   (use-package elfeed
     :ensure t
     :unless twem2--is-work
+    :bind ("C-c u" . elfeed-update)
     :custom
     (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
     (elfeed-show-entry-switch 'display-buffer))
