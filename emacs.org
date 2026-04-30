@@ -167,7 +167,8 @@ It has convinced me to try out ~gnu-elpa-devel~ and to set priorities
         '(("gnu-elpa" . "https://elpa.gnu.org/packages/")
           ("gnu-elpa-devel" . "https://elpa.gnu.org/devel/")
           ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-          ("melpa" . "https://melpa.org/packages/")))
+          ("melpa" . "https://melpa.org/packages/")
+  	("melpa-stable" . "https://stable.melpa.org/packages/")))
 
   ;; Highest number gets priority (what is not mentioned has priority 0)
   (setq package-archive-priorities
@@ -1643,10 +1644,20 @@ requires CMake to compile
   (provide 'twem2-term)
 #+end_src
 * version control module
-** magit
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
   ;;; ...  -*- lexical-binding: t -*-
+#+end_src
+** transient
+Required by magit. pin to melpa-stable
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
+  (use-package transient
+    :pin melpa-stable
+    :ensure t)
+#+end_src
+** magit
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
   (use-package magit
+    :pin melpa-stable
     :ensure t
     :config
     (magit-add-section-hook 'magit-status-sections-hook
@@ -1655,6 +1666,10 @@ requires CMake to compile
     :custom
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
     (magit-bury-buffer-function #'magit-restore-window-configuration))
+
+  (use-package magit-popup
+    :pin melpa-stable
+    :ensure t)
 #+end_src
 ** git gutter
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
