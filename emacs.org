@@ -1467,7 +1467,7 @@ Install ~rassumfrassum~ with ~pipx install rassumfrassum~
                            (directory-files root nil "^\\.eslintrc" t))))
       (cond
        (has-biome '("rass" "tsbiome"))
-       (has-eslint '("rass" "tslint"))
+       ;(has-eslint '("rass" "tslint"))
        (t '("typescript-language-server" "--stdio")))))
 #+end_src
 
