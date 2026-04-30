@@ -2134,34 +2134,15 @@ move this somewhere else
 (provide 'twem2-trial)
 #+end_src
 * TODO AI module
+ #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el
+   ;;; ...  -*- lexical-binding: t -*-
+ #+end_src
+** Claude Code CLI Integration
+~claude-code-ide~ adds some integration between the CLI and emacs
+
+It manages instances on a per-project basis, puts Claude in a side window, and enabled opening diffs in ediff
+
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
-  ;;; ...  -*- lexical-binding: t -*-
-
-  ;; claude-code is needed for ai-code-interface
-
-  ;; install required inheritenv dependency:
-  ;; (use-package inheritenv
-  ;;   :ensure t
-  ;;   :demand t
-  ;;   :vc (:url "https://github.com/purcell/inheritenv" :rev :newest))
-
-  ;; (use-package claude-code
-  ;;   :ensure t
-  ;;   :demand t
-  ;;   :after inheritenv
-  ;;   :vc (:url "https://github.com/stevemolitor/claude-code.el" :rev :newest))
-
-  ;; (use-package ai-code-interface
-  ;;   :ensure t
-  ;;   :demand t
-  ;;   :after claude-code
-  ;;   :vc (:url "https://github.com/tninja/ai-code-interface.el" :rev :newest)
-  ;;   :bind ("C-c i" . ai-code-menu)
-  ;;   :config
-  ;;   (ai-code-set-backend 'codex)
-  ;;   (ai-code-magit-setup-transients)
-  ;;   (setopt codex-cli-program "/opt/homebrew/bin/codex"))
-
   ;; claude-code-ide allows integration with emacs tools
   ;; https://github.com/manzaltu/claude-code-ide.el
   (use-package claude-code-ide
@@ -2209,9 +2190,27 @@ FILE_PATH must be an absolute path within `twem2-mcp-open-file-allowed-directori
                     :type number
                     :description "Line number to jump to (1-based)"
                     :optional t))))
+#+end_src
+** anvil
+Anvil provides an MCP server which allows AI 'agents' to make use of emacs features.
 
+In particular it allows 'agents' to offload large file processing to emacs
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
+  (use-package anvil
+    :ensure t
+    :vc (:url "https://github.com/zawatton/anvil.el.git"
+  	    :branch "v1.1.1")
+    :config
+    ;(setopt anvil-optional-modules '(orchestrator))
+    (anvil-enable)
+    (anvil-server-start))
+#+end_src
+
+** Provide twem2-ai
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
   (provide 'twem2-ai)
-  #+end_src
+#+end_src
 * TODO IRC
 #+end_src
 This requires tidying
