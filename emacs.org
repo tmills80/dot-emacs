@@ -313,6 +313,14 @@ Each module ~provides~ a package
   (unless twem2--is-work
     (require 'twem2-android))
 #+end_src
+** Start server
+#+begin_src emacs-lisp :tangle init.el
+  (require 'server)
+
+  (unless (server-running-p)
+    (server-start))
+#+end_src
+
 * Essential configuration
 Things which are currently essential and will always be loaded.
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
