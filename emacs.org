@@ -280,6 +280,7 @@ Each module ~provides~ a package
 #+begin_src emacs-lisp :tangle init.el
   (require 'twem2-org)
   (require 'twem2-essentials)
+  (require 'twem2-utils)
   (require 'twem2-ediff)
   (require 'twem2-wsl2)
   (require 'twem2-theme)
@@ -380,15 +381,6 @@ Things which are currently essential and will always be loaded.
   (setq which-key-popup-type 'minibuffer)
   (which-key-mode))
 
-;; helpful - better *help* buffer with colours, references, source code and more
-(use-package helpful
-  :ensure t
-  :bind (([remap describe-function] . helpful-callable)
-         ([remap describe-key] . helpful-key)
-         ([remap describe-variable] . helpful-variable)
-         ([remap describe-command] . helpful-command)
-         ("C-c C-d" . helpful-at-point)))
-
 ;; flymake - built-in error checker, used by eglot
 ;; Also useful: consult-flymake bound to M-g f
 (use-package flymake
@@ -403,6 +395,27 @@ Things which are currently essential and will always be loaded.
   :hook ((prog-mode text-mode) . display-line-numbers-mode))
 
 (provide 'twem2-essentials)
+#+end_src
+* Utilities
+Non-essential, but very useful packages and configuration
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-utils.el :mkdirp yes
+  ;;; twem2-ediff.el --- Ediff configuration -*- lexical-binding: t -*-
+#+end_src
+** Helpful
+Improved help buffers
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-utils.el :mkdirp yes
+  (use-package helpful
+    :ensure t
+    :bind (([remap describe-function] . helpful-callable)
+           ([remap describe-key] . helpful-key)
+           ([remap describe-variable] . helpful-variable)
+           ([remap describe-command] . helpful-command)
+  	 ([remap describe-symbol] . helpful-symbol)
+           ("C-c C-d" . helpful-at-point)))
+#+end_src
+** provide twem2-utils
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-utils.el :mkdirp yes
+  (provide 'twem2-utils)
 #+end_src
 * Ediff configuration
 Configure ediff to open in the current tab and restore window configuration on exit.
