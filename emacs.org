@@ -2218,6 +2218,19 @@ FILE_PATH must be an absolute path within `twem2-mcp-open-file-allowed-directori
 Anvil provides an MCP server which allows AI 'agents' to make use of emacs features.
 
 In particular it allows 'agents' to offload large file processing to emacs
+*** anvil-ide
+Package to allow anvil to access emacs ide functions
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
+  (use-package anvil-ide
+    :ensure t
+    :vc (:url "https://github.com/zawatton/anvil-ide.el.git"
+  	    :branch "main"))
+#+end_src
+*** Core anvil
+https://github.com/zawatton/anvil.el
+
+- ~pdf~ requires ~python~ and ~pymupdf~
+- ~xlsx~ requires ~python~ and ~openpyxl~
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
   (use-package anvil
@@ -2225,6 +2238,8 @@ In particular it allows 'agents' to offload large file processing to emacs
     :vc (:url "https://github.com/zawatton/anvil.el.git"
   	    :branch "v1.1.1")
     :config
+    (setopt anvil-optional-modules
+  	  '(ide orchestrator state buffer treesit py ts js shell-filter memory pdf xlsx))
     ;(setopt anvil-optional-modules '(orchestrator))
     (anvil-enable)
     (anvil-server-start))
