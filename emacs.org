@@ -345,6 +345,8 @@ Things which are currently essential and will always be loaded.
   (column-number-mode t)
   ;; Select the help window when its opened
   (help-window-select t)
+    ;; reuse the help window on navigation
+    (help-window-keep-selected t)
   :config
   ;; Minor modes to hide (requires emacs 31+)
   (setq mode-line-collapse-minor-modes
