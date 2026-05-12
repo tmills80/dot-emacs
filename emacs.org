@@ -595,22 +595,13 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
   				     (fontaine--get-preset-property fontaine-current-preset :default-height)
   				     100.0))))))
 #+end_src
-** TODO variable pitch mode
-This seems the wrong way to do this
-
-I want variable pitch in modes where I am focussed on prose
-I do wish info mode had better handling of
+** variable pitch mode
+I want variable pitch in modes where I am focussed on prose,
+but not for some text-mode derived modes (eg. yaml)
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
-  (defun turnoff-variable-pitch ()
-    (buffer-face-mode nil))
-
-  (defun turnon-variable-pitch ()
-    (buffer-face-mode t))
-
   (use-package emacs
-    :hook ((text-mode . turnon-variable-pitch)
-  	 (yaml-ts-mode . turnoff-variable-pitch)))
+    :hook  (yaml-ts-mode . (lambda () (variable-pitch-mode -1))))
 #+end_src
 ** resize text across all buffers
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
