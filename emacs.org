@@ -719,7 +719,7 @@ Some of the =:config= section is customizable, so should probably be in =:custom
                       ":CREATED: %U\n"
                       ":END:\n\n")
              :empty-lines 1)
-            ("t" "TODO" entry (file+headline "~/org/TODO.org" "Unreviewed")
+            ("t" "TODO" entry (file+headline "~/INBOX.org" "Unreviewed")
              ,(concat "* TODO %^{Title}\n"
                       ":PROPERTIES:\n"
                       ":CREATED: %U\n"
