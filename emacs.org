@@ -296,7 +296,6 @@ Each module ~provides~ a package
   ;; (require 'twem2-web-dev)
   (require 'twem2-eglot)
   (require 'twem2-vc)
-  (require 'twem2-markdown)
   (require 'twem2-icons)
   (require 'twem2-python)
   (require 'twem2-ruby)
@@ -1731,19 +1730,6 @@ Required by magit. pin to melpa-stable
 ** provide twem-vc
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el
 (provide 'twem2-vc)
-#+end_src
-* markdown mode module
-** Install markdown mode
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-markdown.el
-  ;;; ...  -*- lexical-binding: t -*-
-  (use-package markdown-mode
-    :ensure t
-    :mode ("README\\.md\\'" . gfm-mode)
-    :init (setq markdown-command "pandoc"))
-#+end_src
-** provide
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-markdown.el
-(provide 'twem2-markdown)
 #+end_src
 * icons module
 nerd-fonts have lots of useful icons (more than all-the-icons)
