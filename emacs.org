@@ -682,7 +682,7 @@ Some of the =:config= section is customizable, so should probably be in =:custom
         	 ("C-c i" . twem2-org-latex-insert-brackets))
     ;;      :diminish org-indent-mode
     :custom
-    (org-agenda-files '("~/org" "~/.emacs.d/emacs.org"))
+    (org-agenda-files '("~/org" "~/TODO.org" "~/notes"))
     ;; make font bigger in latex preview
     (org-format-latex-options '(:scale 1.0))
     ;; Add packages to LaTeX fragments
