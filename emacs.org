@@ -51,7 +51,6 @@ Whilst there you should look at Prot's many, exceedingly useful, packages. They'
 You'll notice quite a few I use
 
 
-
 * Early initialization of Emacs
 =early-init.el= is run early in the Emacs startup process.  See [[info:emacs#Early Init File][emacs#Early Init File]]
 #+begin_src emacs-lisp :tangle early-init.el
@@ -596,12 +595,12 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
   				     100.0))))))
 #+end_src
 ** variable pitch mode
-I want variable pitch in modes where I am focussed on prose,
-but not for some text-mode derived modes (eg. yaml)
+I want variable pitch in modes where I am focussed on prose, but not for some text-mode derived modes (eg. yaml)
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
   (use-package emacs
-    :hook  (yaml-ts-mode . (lambda () (variable-pitch-mode -1))))
+    :hook  ((yaml-ts-mode . (lambda () (variable-pitch-mode -1)))
+            (org-mode . (lambda () (variable-pitch-mode 1)))))
 #+end_src
 ** resize text across all buffers
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
