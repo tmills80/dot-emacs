@@ -578,9 +578,9 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
   	   :inherit small
   	   :default-height 200
   	   )
-  	  (ioveska
-  	   :inherit large
-  	   :font-family "Ioveska")))
+  	  (aporetic
+  	   :inherit regular
+  	   :font-family "Aporetic Sans")))
     (fontaine-set-preset (or (fontaine-restore-latest-preset) 'regular))
     (add-hook 'kill-emacs-hook #'fontaine-store-latest-preset)
     (add-hook 'fontaine-set-preset-hook #'fontaine-store-latest-preset)
