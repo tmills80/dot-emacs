@@ -375,12 +375,7 @@ Things which are currently essential and will always be loaded.
   (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
 
 ;; which-key
-(use-package which-key
-  :ensure t
-  :config
-  (setq which-key-idle-delay 0.3)
-  (setq which-key-popup-type 'minibuffer)
-  (which-key-mode))
+
 
 ;; flymake - built-in error checker, used by eglot
 ;; Also useful: consult-flymake bound to M-g f
@@ -395,6 +390,7 @@ Things which are currently essential and will always be loaded.
   :ensure t
   :hook ((prog-mode text-mode) . display-line-numbers-mode))
 #+end_src
+
 ** My own prefix keymap
 Set up a prefix keymap for my own mappings. Avoids the difficulies caused by overloading functions
 
@@ -418,10 +414,25 @@ Start off with functions to open ~INBOX.org~ and ~TODO.org~
 
   (keymap-set global-map "C-z" twem2-prefix-keymap)
 #+end_src
-** provide twem2-essentials
+
+** which-key - display following key bindings
+[[help:which-key-mode][which-key]] is a minor mode which shows key bindings following the prefix you just
+typed in the minibuffer
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
+  (use-package which-key
+    :ensure t
+    :config
+    (setopt which-key-idle-delay 0.3)
+    (setopt which-key-popup-type 'minibuffer)
+    (which-key-mode))
+#+end_src
+
+** Provide essentials module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
 (provide 'twem2-essentials)
 #+end_src
+
+
 * Utilities module
 Non-essential, but very useful packages and configuration
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-utils.el :mkdirp yes
