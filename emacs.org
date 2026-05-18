@@ -323,70 +323,69 @@ Each module ~provides~ a package
 * Essential configuration
 Things which are currently essential and will always be loaded.
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
-;;; twem2-essentials.el --- Essential configuration -*- lexical-binding: t -*-
+  ;;; twem2-essentials.el --- Essential configuration -*- lexical-binding: t -*-
 
-(use-package emacs
-  :ensure t
-  ;; Rebind M-i to imenu
-  :bind (("M-i" . imenu)
-         ("<f11>" . nil)
-         ("C-z" . nil))
-  :custom
-  ;; Use visible bell rather than making a noise
-  (visible-bell t)
-  ;; Use tab for completion and indentation
-  (tab-always-indent 'complete)
-  ;; Highlight the current error
-  (next-error-message-highlight t)
-  ;; Turn on column-number-mode
-  (column-number-mode t)
-  ;; Select the help window when its opened
-  (help-window-select t)
+  (use-package emacs
+    :ensure t
+    ;; Rebind M-i to imenu
+    :bind (("M-i" . imenu)
+           ("<f11>" . nil)
+           ("C-z" . nil))
+    :custom
+    ;; Use visible bell rather than making a noise
+    (visible-bell t)
+    ;; Use tab for completion and indentation
+    (tab-always-indent 'complete)
+    ;; Highlight the current error
+    (next-error-message-highlight t)
+    ;; Turn on column-number-mode
+    (column-number-mode t)
+    ;; Select the help window when its opened
+    (help-window-select t)
     ;; reuse the help window on navigation
     (help-window-keep-selected t)
-  :config
-  ;; Minor modes to hide (requires emacs 31+)
-  (setq mode-line-collapse-minor-modes
-        '(eldoc-mode
-          buffer-face-mode
-          auto-revert-mode
-          org-indent-mode
-          smartparens-mode
-          subword-mode
-          jest-test-mode
-          which-key-mode
-          eldoc-mode))
-  (setq mode-line-collapse-minor-modes-to "")
-  ;; Turn off backups & lock files
-  (setq make-backup-files nil)
-  (setq create-lockfiles nil)
-  ;; Make compile-mode use ANSI colours
-  (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
-  ;; Strip whitespace on save
-  (add-hook 'before-save-hook
-            'delete-trailing-whitespace)
-  ;; auto-revert-mode
-  (global-auto-revert-mode))
+    ;; increase ispell choices window height to allow for header and footer lines
+    (ispell-choices-win-default-height 5)
+    :config
+    ;; Minor modes to hide (requires emacs 31+)
+    (setq mode-line-collapse-minor-modes
+          '(eldoc-mode
+            buffer-face-mode
+            auto-revert-mode
+            org-indent-mode
+            smartparens-mode
+            subword-mode
+            jest-test-mode
+            which-key-mode
+            eldoc-mode))
+    (setq mode-line-collapse-minor-modes-to "")
+    ;; Turn off backups & lock files
+    (setq make-backup-files nil)
+    (setq create-lockfiles nil)
+    ;; Make compile-mode use ANSI colours
+    (add-hook 'compilation-filter-hook 'ansi-color-compilation-filter)
+    ;; Strip whitespace on save
+    (add-hook 'before-save-hook
+              'delete-trailing-whitespace)
+    ;; auto-revert-mode
+    (global-auto-revert-mode))
 
-;; Set a dictionary for ispell-lookup-words to use
-(when (eq system-type 'gnu/linux)
-  (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
+  ;; Set a dictionary for ispell-lookup-words to use
+  (when (eq system-type 'gnu/linux)
+    (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
 
-;; which-key
+  ;; flymake - built-in error checker, used by eglot
+  ;; Also useful: consult-flymake bound to M-g f
+  (use-package flymake
+    :ensure t
+    :bind (:map flymake-mode-map
+                ("M-p" . flymake-goto-prev-error)
+                ("M-n" . flymake-goto-next-error)))
 
-
-;; flymake - built-in error checker, used by eglot
-;; Also useful: consult-flymake bound to M-g f
-(use-package flymake
-  :ensure t
-  :bind (:map flymake-mode-map
-              ("M-p" . flymake-goto-prev-error)
-              ("M-n" . flymake-goto-next-error)))
-
-;; Display line numbers in prog and text modes
-(use-package emacs
-  :ensure t
-  :hook ((prog-mode text-mode) . display-line-numbers-mode))
+  ;; Display line numbers in prog and text modes
+  (use-package emacs
+    :ensure t
+    :hook ((prog-mode text-mode) . display-line-numbers-mode))
 #+end_src
 
 ** My own prefix keymap
