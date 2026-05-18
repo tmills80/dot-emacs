@@ -50,7 +50,6 @@ I can't recommend going through this enough: [[https://protesilaos.com/emacs/dot
 Whilst there you should look at Prot's many, exceedingly useful, packages. They're fantastically documented, and the code is well organized.
 You'll notice quite a few I use
 
-
 * Early initialization of Emacs
 =early-init.el= is run early in the Emacs startup process.  See [[info:emacs#Early Init File][emacs#Early Init File]]
 #+begin_src emacs-lisp :tangle early-init.el
@@ -265,7 +264,6 @@ Additionally save the kill-ring, search-ring, and regexp-search-ring
   (savehist-mode t)
 #+end_src
 
-
 ** Load personal lisp packages
 #+begin_src emacs-lisp :tangle init.el
   (require 'twem2-org-latex)
@@ -286,13 +284,13 @@ Each module ~provides~ a package
   (unless twem2--is-work
     (require 'twem2-email))
   (require 'twem2-completion)
+  (require 'twem2-navigation)
   (require 'twem2-denote)
   (require 'twem2-window)
   ;;  (require 'twem2-bookmarks)
   (require 'twem2-dired)
   (require 'twem2-treesitter)
   (require 'twem2-latex)
-  ;; (require 'twem2-web-dev)
   (require 'twem2-eglot)
   (require 'twem2-vc)
   (require 'twem2-markdown)
@@ -431,7 +429,6 @@ typed in the minibuffer
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
 (provide 'twem2-essentials)
 #+end_src
-
 
 * Utilities module
 Non-essential, but very useful packages and configuration
@@ -1330,17 +1327,8 @@ https://github.com/oantolin/embark
      ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
     :init
-
     ;; Optionally replace the key help with a completing-read interface
-    (setq prefix-help-command #'embark-prefix-help-command)
-
-    :config
-
-    ;; Hide the mode line of the Embark live/completions buffers
-    (add-to-list 'display-buffer-alist
-                 '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-                   nil
-                   (window-parameters (mode-line-format . none)))))
+    (setq prefix-help-command #'embark-prefix-help-command))
 
   ;; Consult users will also want the embark-consult package.
   (use-package embark-consult
@@ -1352,7 +1340,52 @@ https://github.com/oantolin/embark
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
+*** which-key as a key menu prompt
+By default, embark creates a buffer with the actions after a short break.
+I find this awkward and it diverges from my usual [[*which-key - display following key bindings][which-key]] usage
 
+This snippet from [[https://github.com/oantolin/embark/wiki/Additional-Configuration#use-which-key-like-a-key-menu-prompt][the embark wiki]] moves the embark indicator to the
+minibuffer using which-key
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
+  (defun embark-which-key-indicator ()
+    "An embark indicator that displays keymaps using which-key.
+  The which-key help message will show the type and value of the
+  current target followed by an ellipsis if there are further
+  targets."
+    (lambda (&optional keymap targets prefix)
+      (if (null keymap)
+          (which-key--hide-popup-ignore-command)
+        (which-key--show-keymap
+         (if (eq (plist-get (car targets) :type) 'embark-become)
+             "Become"
+           (format "Act on %s '%s'%s"
+                   (plist-get (car targets) :type)
+                   (embark--truncate-target (plist-get (car targets) :target))
+                   (if (cdr targets) "…" "")))
+         (if prefix
+             (pcase (lookup-key keymap prefix 'accept-default)
+               ((and (pred keymapp) km) km)
+               (_ (key-binding prefix 'accept-default)))
+           keymap)
+         nil nil t (lambda (binding)
+                     (not (string-suffix-p "-argument" (cdr binding))))))))
+
+  (setq embark-indicators
+    '(embark-which-key-indicator
+      embark-highlight-indicator
+      embark-isearch-highlight-indicator))
+
+  (defun embark-hide-which-key-indicator (fn &rest args)
+    "Hide the which-key indicator immediately when using the completing-read prompter."
+    (which-key--hide-popup-ignore-command)
+    (let ((embark-indicators
+           (remq #'embark-which-key-indicator embark-indicators)))
+        (apply fn args)))
+
+  (advice-add #'embark-completing-read-prompter
+              :around #'embark-hide-which-key-indicator)
+#+end_src
 ** Provide navigation module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-navigation.el :mkdirp yes
   (provide 'twem2-navigation)
