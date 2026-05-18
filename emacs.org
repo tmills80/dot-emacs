@@ -394,13 +394,38 @@ Things which are currently essential and will always be loaded.
 (use-package emacs
   :ensure t
   :hook ((prog-mode text-mode) . display-line-numbers-mode))
+#+end_src
+** My own prefix keymap
+Set up a prefix keymap for my own mappings. Avoids the difficulies caused by overloading functions
 
+Start off with functions to open ~INBOX.org~ and ~TODO.org~
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
+  (defun twem2-open-inbox ()
+    "Open ~/INBOX.org"
+    (interactive)
+    (find-file "~/INBOX.org"))
+
+  (defun twem2-open-todo ()
+    "Open ~/TODO.org"
+    (interactive)
+    (find-file "~/TODO.org"))
+
+  (defvar-keymap twem2-prefix-keymap
+      :doc "General prefix keymap"
+      "i" #'twem2-open-inbox
+      "t" #'twem2-open-todo)
+
+  (keymap-set global-map "C-z" twem2-prefix-keymap)
+#+end_src
+** provide twem2-essentials
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-essentials.el :mkdirp yes
 (provide 'twem2-essentials)
 #+end_src
 * Utilities module
 Non-essential, but very useful packages and configuration
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-utils.el :mkdirp yes
-  ;;; twem2-ediff.el --- Ediff configuration -*- lexical-binding: t -*-
+  ;;; twem2-utils.el --- General utilities configuration -*- lexical-binding: t -*-
 #+end_src
 ** Helpful
 Improved help buffers
