@@ -1668,7 +1668,7 @@ Package for inserting $\LaTeX$ quickly. Usable in =org-mode=, =LaTeX-mode=, and 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-web-dev.el
   (provide 'twem2-web-dev)
 #+end_src
-* NEXT  terminal emulation module
+* terminal emulation module
 ** eat
 eat https://codeberg.org/akib/emacs-eat
 
@@ -1685,7 +1685,7 @@ in =~/.emacs.d/elpa/eat-xxx/= run =/usr/bin/tic -x terminfo.ti=
     ;; :bind ("C-x p s" . eat-project)
     )
 #+end_src
-** TODO vterm
+** vterm
 :LOGBOOK:
 - State "TODO"       from              [2025-09-09 Tue 13:46]
 :END:
@@ -1710,11 +1710,30 @@ requires CMake to compile
       (require 'project)
       (let* ((default-directory (project-root (project-current t)))
       	   (vterm-buffer-name (project-prefixed-buffer-name "vterm")))
-        (vterm arg)))
-    :bind ("C-x p s" . vterm-project))
+        (vterm arg))))
+#+end_src
+** TODO ghostel - ghostty backed terminal
 
+- TODO is to replace vterm if this works
+
+Similar to vterm, this uses an external library to provide terminal emulation.
+In this case it uses [[https://ghostty.org/][libghotty-vt]]
+
+Otherwise it seems to be pretty much a drop in replacement for vter
+Performance is claimed to be better, and terminal emulation support better.
+
+https://github.com/dakra/ghostel
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
+  (use-package ghostel
+    :ensure t
+    :bind (:map project-prefix-map ("s" . #'ghostel-project)))
+#+end_src
+** provide twem2-term
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
   (provide 'twem2-term)
 #+end_src
+
 * version control module
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-vc.el :mkdirp yes
   ;;; ...  -*- lexical-binding: t -*-
