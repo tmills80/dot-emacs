@@ -1440,6 +1440,13 @@ A lot of this is taken from Prot's config: https://protesilaos.com/emacs/dotemac
     (setq dired-auto-revert-buffer #'dired-directory-changed-p)
     :hook ((dired-mode . dired-hide-details-mode)
            (dired-mode . hl-line-mode)))
+
+  (use-package dired-x
+    :after dired
+    :config
+    ;; omit dot files when omit files is on
+    (setopt dired-omit-files
+  	  (concat dired-omit-files "\\|^\\..+$")))
 #+end_src
 ** provide twem2-dired
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-dired.el
