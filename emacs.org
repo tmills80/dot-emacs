@@ -2112,6 +2112,10 @@ casual provides transient menus for many modes, exposing the functionality in a 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-casual.el
   ;;; ...  -*- lexical-binding: t -*-
 
+  ;; TODO configure bindings in their own use-package definition to defer loading?
+  (require 'calc) ;; see if this fixes the annoying warning at startup
+  (require 'grep)
+
   (use-package casual
     :ensure t
     :bind (;; global keymap for EditKit
@@ -2129,7 +2133,7 @@ casual provides transient menus for many modes, exposing the functionality in a 
   	 ("F" . casual-ibuffer-filter-tmenu)
   	 ("s" . casual-ibuffer-sortby-tmenu)
   	 :map Info-mode-map ("C-o" . casual-info-tmenu)
-  	 :map reb-mode-map ("C-o" . casual-re-builder-tmenu)
+  	 ;:map reb-mode-map ("C-o" . casual-re-builder-tmenu)
   	 :map bookmark-bmenu-mode-map ("C-o" . casual-bookmarks-tmenu)
   	 :map org-mode-map ("C-c o" . casual-org-tmenu)
   	 ("C-o" . casual-editkit-main-tmenu)
