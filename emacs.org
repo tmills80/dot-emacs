@@ -2156,13 +2156,12 @@ Somethings wrong here - investigate
   (use-package elfeed
     :ensure t
     :unless twem2--is-work
-    :bind ("C-c u" . elfeed-update)
+    :bind ("C-z f" . elfeed)
     :custom
     (elfeed-db-directory (expand-file-name "elfeed" user-emacs-directory))
     (elfeed-show-entry-switch 'display-buffer))
 
-
-      ;; use org to configure
+  ;; use org to configure
   (use-package elfeed-org
     :ensure t
     :unless twem2--is-work
@@ -2171,9 +2170,11 @@ Somethings wrong here - investigate
     (elfeed-org)
     (setq rmh-elfeed-org-files (list "~/.emacs.d/elfeed.org")))
 
-  ;; Use fork which adds dates to the header linnne
+  ;; Use fork which adds dates to the header line
+  ;; disable to try base elfeed again
   (use-package elfeed-goodies
-    :ensure t
+    ;;  :ensure t
+    :disabled t
     :unless twem2--is-work
     :vc (:url "https://github.com/jeetelongname/elfeed-goodies.git"
   	      :branch "master")
