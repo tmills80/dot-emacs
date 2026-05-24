@@ -2041,48 +2041,34 @@ Should probably split this up into language specific modules?
 * TODO project module
 Customization or =project.el=
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-project.el :mkdirp yes
-    ;;; ...  -*- lexical-binding: t -*-
+  ;;; ...  -*- lexical-binding: t -*-
 
-    ;; consult-ripgrep in project root
-    ;; see project-find-dir
-    (defun custom/project--find-dirs (project)
-      (let* ((all-files (project-files project))
-    	 (completion-ignore-case read-file-name-completion-ignore-case)
-    	 (all-dirs (mapcar #'file-name-directory all-files)))
-        (project--read-file-name
-         project "ripgrep directory"
-         ;; Some completion UIs show duplicates.
-         (delete-dups all-dirs)
-         nil 'file-name-history
-         (and default-directory
-              (project--find-default-from default-directory project)))))
+  ;; consult-ripgrep in project root
+  ;; see project-find-dir
+  (defun custom/project--find-dirs (project)
+    (let* ((all-files (project-files project))
+  	 (completion-ignore-case read-file-name-completion-ignore-case)
+  	 (all-dirs (mapcar #'file-name-directory all-files)))
+      (project--read-file-name
+       project "ripgrep directory"
+       ;; Some completion UIs show duplicates.
+       (delete-dups all-dirs)
+       nil 'file-name-history
+       (and default-directory
+            (project--find-default-from default-directory project)))))
 
-    (use-package project
-      :after consult
-      ;; :bind ("C-x b" . twem2/switch-to-buffer)
-      :custom
-      (project-switch-commands
-       '((project-find-file "Find file")
-         (consult-project-buffer "Find buffer")
-         (project-find-regexp "Find regexp")
-         (project-find-dir "Find directory")
-         (vterm-project "Shell")
-         (magit-project-status "Magit" "m")
-         (claude-code-ide-menu "Claude" "'"))))
+  (use-package project
+    :after consult
+    :custom
+    (project-switch-commands
+     '((project-find-file "Find file")
+       (consult-project-buffer "Find buffer")
+       (project-find-regexp "Find regexp")
+       (project-find-dir "Find directory")
+       (ghostel-project "Shell")
+       (magit-project-status "Magit" "m"))))
 
-
-      ;; (use-package project
-      ;;   :after consult
-      ;;   :custom
-      ;;   (project-switch-commands
-      ;;    '((project-find-file "Find file")
-      ;;      (consult-project-buffer "Find buffer")
-      ;;      (project-find-regexp "Find regexp")
-      ;;      (project-find-dir "Find directory")
-      ;;      (eat-project "Shell")
-      ;;      (magit-project-status "Magit" "m"))))
-
-     (provide 'twem2-project)
+   (provide 'twem2-project)
 #+end_src
 
 * PDF module
