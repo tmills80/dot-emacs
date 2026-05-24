@@ -357,7 +357,8 @@ Things which are currently essential and will always be loaded.
             subword-mode
             jest-test-mode
             which-key-mode
-            eldoc-mode))
+            eldoc-mode
+  	  nerd-icons-dired-mode))
     (setq mode-line-collapse-minor-modes-to "")
     ;; Turn off backups & lock files
     (setq make-backup-files nil)
@@ -373,6 +374,7 @@ Things which are currently essential and will always be loaded.
   ;; Set a dictionary for ispell-lookup-words to use
   (when (eq system-type 'gnu/linux)
     (setopt ispell-alternate-dictionary "/usr/share/dict/words"))
+
 
   ;; flymake - built-in error checker, used by eglot
   ;; Also useful: consult-flymake bound to M-g f
