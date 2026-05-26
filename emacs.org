@@ -111,6 +111,12 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
   (eval '(setopt inhibit-startup-echo-area-message twem2--username))
 
   (setopt inhibit-startup-buffer-menu t)
+
+  ;; set the option and command keys to the bindings I want
+  ;; when using deskflow this works
+  (when twem2--is-work
+    (setopt ns-command-modifier 'meta)
+    (setopt ns-option-modifier 'super))
  #+end_src
 
 * The main Emacs initialization file: =init.el=
