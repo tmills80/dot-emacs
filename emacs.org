@@ -1810,7 +1810,8 @@ https://github.com/dakra/ghostel
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
   (use-package ghostel
     :ensure t
-    :bind (:map project-prefix-map ("s" . #'ghostel-project)))
+    :bind (("C-z s" . #'ghostel)
+  	 :map project-prefix-map ("s" . #'ghostel-project)))
 #+end_src
 ** provide twem2-term
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
