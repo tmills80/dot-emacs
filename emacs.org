@@ -690,8 +690,8 @@ The default list of modes is good for now
              proced-mode-hook
              tabulated-list-mode-hook
              ;; my additions
-             ement-room-mode-hook
-             ement-room-list-mode-hook))
+             erc-mode-hook
+  	   elfeed-show-mode-hook))
     (lin-global-mode 1))
 #+end_src
 ** Provide the theme module
