@@ -2288,6 +2288,14 @@ move this somewhere else
   (use-package jsonnet-mode
     :ensure t)
 #+end_src
+** TODO zig mode
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package zig-ts-mode
+    :vc ( :url "https://codeberg.org/meow_king/zig-ts-mode"
+          :rev :newest)
+    :config
+    (zig-ts-install-grammars))
+#+end_src
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
 (provide 'twem2-trial)
