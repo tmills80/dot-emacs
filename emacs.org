@@ -115,8 +115,8 @@ Full-screen tip from [[https://emacsredux.com/blog/2020/12/04/maximize-the-emacs
   ;; set the option and command keys to the bindings I want
   ;; when using deskflow this works
   (when twem2--is-work
-    (setopt ns-command-modifier 'meta)
-    (setopt ns-option-modifier 'super))
+    (setopt ns-command-modifier 'super)
+    (setopt ns-option-modifier 'meta))
  #+end_src
 
 * The main Emacs initialization file: =init.el=
@@ -710,123 +710,123 @@ This could do with being split up somehow.
 Some of the =:config= section is customizable, so should probably be in =:custom= in case code is run on setting (or the =setopt= macro could be used)
 
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-org.el :mkdirp yes
-  ;;; ...  -*- lexical-binding: t -*-
-  (use-package org
-    :ensure t
-    :pin gnu-elpa
-    :bind (("C-c l" . org-store-link)
-           ("C-c a" . org-agenda)
-           ("C-c c" . org-capture)
-        	 :map org-mode-map
-        	 ("C-c i" . twem2-org-latex-insert-brackets))
-    ;;      :diminish org-indent-mode
-    :custom
-    (org-agenda-files '("~/TODO.org" "~/notes" "~/INBOX.org"))
-    ;; make font bigger in latex preview
-    (org-format-latex-options '(:scale 1.0))
-    ;; Add packages to LaTeX fragments
-    (org-latex-packages-alist'(("" "multirow" t nil)
-      			     ("" "mathtools" t nil)))
-    ;; use dvisvgm to generate fragments - it works better
-    (org-preview-latex-default-process 'dvisvgm)
-    ;; load shell babel
-    (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
-    :config
-    ;; Logging
-    (setq org-log-into-drawer t
-          org-log-reschedule 'time
-          org-log-redeadline 'time)
-    ;; TODO keywords
-    (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
-                                        "TODO(t!/!)"
-                                        "NEXT(n!/!)"
-                                        "STARTED(s!)"
-                                        "WAITING(w@/!)"
-                                        "|"
-                                        "DONE(d!/!)"
-                                        "CANCELLED(c@/!)")
-                              (type "PROJECT" "|" "DONE")))
-    ;; ordering of tasks
-    (setq org-enforce-todo-dependencies t
-          org-track-ordered-property-with-tag t
-          org-agenda-dim-blocked-tasks t
-          org-enforce-todo-checkbox-dependencies t)
-    ;; Capture templates
-    (setq org-capture-templates
-          `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
-             ,(concat "* %?\n"
-                      ":PROPERTIES:\n"
-                      ":CREATED: %U\n"
-                      ":END:\n\n")
-             :empty-lines 1)
-            ("t" "TODO" entry (file+headline "~/INBOX.org" "Unreviewed")
-             ,(concat "* TODO %^{Title}\n"
-                      ":PROPERTIES:\n"
-                      ":CREATED: %U\n"
-                      ":END:\n\n"
-                      "%?"))
-            ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
-                                               ,(format-time-string "%Y")
-                                               ,(format-time-string "%Y-%m"))
-             ,(concat "* %t [/]\n"
-                      "  - [ ] %?"))
-            ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
-             ,(concat "* %^{Title|%:description}\n"
-                      "  Source: %u, %c\n\n"
-                      "  %i%?"))))
-    ;; Source editing popup window
-    ;; TODO commenting out to see if this is still what I want
-    ;;  (setq org-src-window-setup 'plain)
-    ;; Catch accidental deletions of whole subtrees
-    (setq org-fold-catch-invisible-edits 'smart)
-    ;; Only count direct children of check boxes
-    (setq org-checkbox-hierarchical-statistics t)
+    ;;; ...  -*- lexical-binding: t -*-
+    (use-package org
+      :ensure t
+      :pin gnu-elpa
+      :bind (("C-c l" . org-store-link)
+             ("C-c a" . org-agenda)
+             ("C-c c" . org-capture)
+          	 :map org-mode-map
+          	 ("C-c i" . twem2-org-latex-insert-brackets))
+      ;;      :diminish org-indent-mode
+      :custom
+      (org-agenda-files '("~/TODO.org" "~/notes" "~/INBOX.org"))
+      ;; make font bigger in latex preview
+      (org-format-latex-options '(:scale 1.0))
+      ;; Add packages to LaTeX fragments
+      (org-latex-packages-alist'(("" "multirow" t nil)
+        			     ("" "mathtools" t nil)))
+      ;; use dvisvgm to generate fragments - it works better
+      (org-preview-latex-default-process 'dvisvgm)
+      ;; load shell babel
+      (org-babel-load-languages '((emacs-lisp . t) (shell . t)))
+      :config
+      ;; Logging
+      (setq org-log-into-drawer t
+            org-log-reschedule 'time
+            org-log-redeadline 'time)
+      ;; TODO keywords
+      (setq org-todo-keywords '((sequence "REPEATING(r!/!)"
+                                          "TODO(t!/!)"
+                                          "NEXT(n!/!)"
+                                          "STARTED(s!)"
+                                          "WAITING(w@/!)"
+                                          "|"
+                                          "DONE(d!/!)"
+                                          "CANCELLED(c@/!)")
+                                (type "PROJECT" "|" "DONE")))
+      ;; ordering of tasks
+      (setq org-enforce-todo-dependencies t
+            org-track-ordered-property-with-tag t
+            org-agenda-dim-blocked-tasks t
+            org-enforce-todo-checkbox-dependencies t)
+      ;; Capture templates
+      (setq org-capture-templates
+            `(("b" "Bookmark" entry (file+headline "~/org/bookmarks.org" "Bookmarks")
+               ,(concat "* %?\n"
+                        ":PROPERTIES:\n"
+                        ":CREATED: %U\n"
+                        ":END:\n\n")
+               :empty-lines 1)
+              ("t" "TODO" entry (file+headline "~/INBOX.org" "Unreviewed")
+               ,(concat "* TODO %^{Title}\n"
+                        ":PROPERTIES:\n"
+                        ":CREATED: %U\n"
+                        ":END:\n\n"
+                        "%?"))
+              ("d" "Daily tasks" entry (file+olp "~/org/dailyplan.org"
+                                                 ,(format-time-string "%Y")
+                                                 ,(format-time-string "%Y-%m"))
+               ,(concat "* %t [/]\n"
+                        "  - [ ] %?"))
+              ("x" "Org Protocol Capture" entry (file "~/org/1Inbox.org")
+               ,(concat "* %^{Title|%:description}\n"
+                        "  Source: %u, %c\n\n"
+                        "  %i%?"))))
+      ;; Source editing popup window
+      ;; TODO commenting out to see if this is still what I want
+      ;;  (setq org-src-window-setup 'plain)
+      ;; Catch accidental deletions of whole subtrees
+      (setq org-fold-catch-invisible-edits 'smart)
+      ;; Only count direct children of check boxes
+      (setq org-checkbox-hierarchical-statistics t)
 
-    ;;; Refiling
-    ;; Set targets to all agenda files
-    (setq org-refile-targets
-          '((nil :maxlevel . 9)
-            (org-agenda-files :maxlevel . 9)))
-    ;; Allow making top level tasks (start targets with filename)
-    (setq org-refile-use-outline-path 'file)
-    ;; Give complete targets in completion - better for company setup
-    (setq org-outline-path-complete-in-steps nil)
+      ;;; Refiling
+      ;; Set targets to all agenda files
+      (setq org-refile-targets
+            '((nil :maxlevel . 9)
+              (org-agenda-files :maxlevel . 9)))
+      ;; Allow making top level tasks (start targets with filename)
+      (setq org-refile-use-outline-path 'file)
+      ;; Give complete targets in completion - better for company setup
+      (setq org-outline-path-complete-in-steps nil)
 
-    ;;; Styling
-    ;; Indented mode (when not turned off explicitly)
-    (setq org-startup-indented t)
-    ;; Change the ellipsis
-    (setq org-ellipsis "⤵")
-    ;; Custom agenda
-    (setq org-agenda-custom-commands
-          '(("m" "Agenda"
-             (
-              (todo "STARTED"
-                    ((org-agenda-overriding-header "In progress")))
-              (agenda ""
-                      ((org-agenda-overriding-header "Daily Agenda")
-                       (org-agenda-span 1)
-                       (org-deadline-warning-days 0)
-                       (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
-                       ))
-              (agenda ""
-                      ((org-agenda-overriding-header "Next three days")
-                       (org-agenda-start-on-weekday nil)
-                       (org-agenda-start-day "+1d")
-                       (org-agenda-span 3)
-                       (org-deadline-warning-days 0)))
-              (agenda ""
-                      ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
-                       (org-agenda-span 14)
-                       (org-agenda-show-all-dates nil)
-                       (org-agenda-time-grid nil)
-                       (org-deadline-warning-days 0)
-                       (org-agenda-entry-types '(:deadline))))
-              (todo "NEXT"
-                    ((org-agenda-overriding-header "Tasks to do next")))
-              (todo "WAITING"
-                    ((org-agenda-overriding-header "Tasks on hold")))))))
-    )
+      ;;; Styling
+      ;; Indented mode (when not turned off explicitly)
+      (setq org-startup-indented t)
+      ;; Change the ellipsis
+      (setq org-ellipsis "⤵")
+      ;; Custom agenda
+      (setq org-agenda-custom-commands
+            '(("m" "Agenda"
+               (
+                (todo "STARTED"
+                      ((org-agenda-overriding-header "In progress")))
+                (agenda ""
+                        ((org-agenda-overriding-header "Daily Agenda")
+                         (org-agenda-span 1)
+                         (org-deadline-warning-days 0)
+                         (org-agenda-day-face-function (lambda (date) 'org-agenda-date))
+                         ))
+                (agenda ""
+                        ((org-agenda-overriding-header "Next three days")
+                         (org-agenda-start-on-weekday nil)
+                         (org-agenda-start-day "+1d")
+                         (org-agenda-span 3)
+                         (org-deadline-warning-days 0)))
+                (agenda ""
+                        ((org-agenda-overriding-header "Upcoming deadlines (+14d)")
+                         (org-agenda-span 14)
+                         (org-agenda-show-all-dates nil)
+                         (org-agenda-time-grid nil)
+                         (org-deadline-warning-days 0)
+                         (org-agenda-entry-types '(:deadline))))
+                (todo "NEXT"
+                      ((org-agenda-overriding-header "Tasks to do next")))
+                (todo "WAITING"
+                      ((org-agenda-overriding-header "Tasks on hold")))))))
+      )
 #+end_src
 ** OrgTempo templating
 Org mode supports templates. Use =C-c C-,= to access them.
@@ -1564,7 +1564,6 @@ This is all from Mastering Emacs https://www.masteringemacs.org/article/how-to-g
        (java "https://github.com/tree-sitter/tree-sitter-java.git")
        (json "https://github.com/tree-sitter/tree-sitter-json")
        (make "https://github.com/alemuller/tree-sitter-make")
-       (markdown "https://github.com/ikatyang/tree-sitter-markdown")
        (python "https://github.com/tree-sitter/tree-sitter-python")
        (toml "https://github.com/tree-sitter/tree-sitter-toml")
        (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
@@ -1821,6 +1820,19 @@ https://github.com/dakra/ghostel
     :ensure t
     :bind (("C-z s" . #'ghostel)
   	 :map project-prefix-map ("s" . #'ghostel-project)))
+#+end_src
+** shell-pop
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
+  (use-package shell-pop
+    :ensure t
+    :bind ("C-z p" . #'shell-pop)
+    :config
+    (setopt shell-pop-full-span 't)
+    (setopt shell-pop-shell-type '("ghostel" "*ghostel*"
+  				 (lambda ()
+                                     (when (fboundp 'ghostel)
+                                       (let ((ghostel-shell shell-pop-term-shell))
+                                         (ghostel)))))))
 #+end_src
 ** provide twem2-term
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-term.el :mkdirp yes
