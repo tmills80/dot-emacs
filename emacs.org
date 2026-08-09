@@ -605,7 +605,7 @@ I have an issue with org-mode currently - it uses the same font size for fixed-p
              :fixed-pitch-family "Fira Code"
              :fixed-pitch-height 1.0
              :variable-pitch-family "ETBembo"
-             :variable-pitch-height 1.1
+             :variable-pitch-height 1.0
              :line-spacing 1
              )
             (regular
@@ -698,7 +698,6 @@ The default list of modes is good for now
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-theme.el
 (provide 'twem2-theme)
 #+end_src
-
 * org-mode module
 I make extensive use of =org-mode= for all sorts of things
 ** TODO Install and configure org
@@ -722,7 +721,7 @@ Some of the =:config= section is customizable, so should probably be in =:custom
         	 ("C-c i" . twem2-org-latex-insert-brackets))
     ;;      :diminish org-indent-mode
     :custom
-    (org-agenda-files '("~/org" "~/TODO.org" "~/notes"))
+    (org-agenda-files '("~/TODO.org" "~/notes" "~/INBOX.org"))
     ;; make font bigger in latex preview
     (org-format-latex-options '(:scale 1.0))
     ;; Add packages to LaTeX fragments
@@ -1660,7 +1659,11 @@ Install ~rassumfrassum~ with ~pipx install rassumfrassum~
     (add-to-list 'eglot-server-programs
                  '((kotlin-ts-mode kotlin-mode) . ("bash" "/home/tristan/.local/bin/kotlin-lsp.sh" "--stdio")))
     (add-to-list 'eglot-server-programs
-                 '((typescript-ts-mode js-ts-mode js-mode) . twem2/ts-server-contact)))
+                 '((typescript-ts-mode js-ts-mode js-mode) . twem2/ts-server-contact))
+    (add-to-list 'eglot-server-programs
+  	       '((zig-ts-mode) . ("/home/tristan/.local/bin/zls")))
+    (add-to-list 'eglot-server-programs
+  	       '((rustic-mode rust-mode rust-ts-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
 
 
   ;;  (require 'eglot-config)
@@ -2266,9 +2269,9 @@ Needed to include gnuplot plots in org-mode
 #+end_src
 ** TODO tramp configureation
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-  (use-package emacs
-    :config
-    (setopt tramp-default-proxies-alist '((".*" "\\`root\\'" "/ssh:%h:"))))t
+  ;; (use-package emacs
+  ;;   :config
+  ;;   (setopt tramp-default-proxies-alist '((".*" "\\`root\\'" "/ssh:%h:"))))
 #+end_src
 ** TODO csv-mode
 only here for quick adding
@@ -2291,10 +2294,24 @@ move this somewhere else
 ** TODO zig mode
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
   (use-package zig-ts-mode
+    :unless twem2--is-work
     :vc ( :url "https://codeberg.org/meow_king/zig-ts-mode"
           :rev :newest)
     :config
     (zig-ts-install-grammars))
+#+end_src
+** TODO rust
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+  (use-package rustic
+    :unless twem2--is-work
+    :ensure t
+    :config
+    (setq rustic-format-on-save nil)
+    (setq rustic-lsp-client 'eglot)
+    (setopt rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer"))
+    :custom
+    (rustic-cargo-use-last-stored-arguments t))
 #+end_src
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
