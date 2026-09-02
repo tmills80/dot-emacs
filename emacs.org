@@ -2273,15 +2273,6 @@ Using the conifg below sort of works, but its not a pleasant experience
                      "& {Add-Type 'using System; using System.Runtime.InteropServices; public class Tricks { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); }'; [tricks]::SetForegroundWindow(%w) }") "Going back to Windows")
   (emacs-everywhere-app-info-function #'emacs-everywhere--app-info-windows))
 #+end_src
-** TODO hyperbole
-https://www.gnu.org/software/hyperbole
-I think this provides links to other places (buttons) in buffers
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-  (use-package hyperbole
-    :disabled
-    :config
-    (hyperbole-mode 1))
-#+end_src
 ** TODO gnuplot
 Needed to include gnuplot plots in org-mode
 
@@ -2293,12 +2284,6 @@ Needed to include gnuplot plots in org-mode
    	 (org-babel-do-load-languages
   	  'org-babel-load-languages
   	  '((gnuplot . t))))
-#+end_src
-** TODO tramp configureation
-#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
-  ;; (use-package emacs
-  ;;   :config
-  ;;   (setopt tramp-default-proxies-alist '((".*" "\\`root\\'" "/ssh:%h:"))))
 #+end_src
 ** TODO csv-mode
 only here for quick adding
@@ -2339,6 +2324,27 @@ Just-in-time spell checker. Replacement for ~flyspell~
     (setopt rustic-analyzer-command '("rustup" "run" "stable" "rust-analyzer"))
     :custom
     (rustic-cargo-use-last-stored-arguments t))
+#+end_src
+** TODO project-x
+Manage projects and sessions in one go.
+Projects are still handled using ~project.el~
+
+https://github.com/vmargb/project-x
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
+(use-package project-x
+  :ensure t
+  :after project
+  :config
+  ;; auto-save project state after 5 seconds of idle time
+  (setq project-x-auto-save-delay 5) ; nil to disable autosave
+  ;; use the custom prompter that shows session labels (optional)
+  (setq project-prompter #'project-x--project-prompt)
+  ;; automatically restore the last project on startup (optional)
+  ;;(setq project-x-restore-last-project-on-startup t)
+  (project-x-mode 1)
+  ;; tab-bar-mode integration (optional)
+  (project-x-tabs-mode 1))
 #+end_src
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
