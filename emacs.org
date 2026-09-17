@@ -133,6 +133,17 @@ Setting these ~ns-*-modifiers~ works with deskflow and a linux host
   	  dired-use-ls-dired t))
 #+end_src
 
+** Security improvements
+Suggested by https://www.jamescherti.com/emacs-security-settings/
+#+begin_src emacs-lisp :tangle early-init.el
+  ;; improve TLS security
+  (setopt gnutls-verify-error t)
+  (setopt gnutls-min-prime-bits 3072)
+
+  ;; stop FFAP probing hostnames with known domains
+  (setopt ffap-machine-p-known 'reject)
+#+end_src
+
 * The main Emacs initialization file: =init.el=
 
 #+begin_src emacs-lisp :tangle init.el
