@@ -2403,9 +2403,10 @@ It manages instances on a per-project basis, puts Claude in a side window, and e
                       :description "Line number to jump to (1-based)"
                       :optional t))))
 #+end_src
-** ai-code
+** TODO ai-code
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
   (use-package ai-code
+    :disabled
     :ensure t
     )
 #+end_src
@@ -2440,6 +2441,28 @@ https://github.com/zawatton/anvil.el
     ;(setopt anvil-optional-modules '(orchestrator))
     (anvil-enable)
     (anvil-server-start))
+#+end_src
+** TODO agent-shell :experimental:
+Agent shell is an Emacs shell for using AI Agents via ACP
+https://github.com/xenodium/agent-shell
+
+Claude Code reqires ~npm install -g @agentclientprotocol/claude-agent-acp~
+Hermes just works.
+See the docs for other agents
+
+See docs for external dependencies for image support too
+
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el
+  (use-package agent-shell
+    :ensure t)
+#+end_src
+
+*** agent-shell-ediff
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el
+  (use-package agent-shell-ediff
+    :ensure t
+    :vc (:url https://github.com/cassandracomar/agent-shell-ediff.git
+              :rev :newest))
 #+end_src
 
 ** Provide twem2-ai
