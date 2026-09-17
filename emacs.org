@@ -2348,9 +2348,9 @@ https://github.com/vmargb/project-x
   :after project
   :config
   ;; auto-save project state after 5 seconds of idle time
-  (setq project-x-auto-save-delay 5) ; nil to disable autosave
+  (setq project-x-auto-save-delay 600) ; nil to disable autosave
   ;; use the custom prompter that shows session labels (optional)
-  (setq project-prompter #'project-x--project-prompt)
+  (setopt project-prompter #'project-prompt-project-dir) ;; #'project-x--project-prompt)
   ;; automatically restore the last project on startup (optional)
   ;;(setq project-x-restore-last-project-on-startup t)
   (project-x-mode 1)
