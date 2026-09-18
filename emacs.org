@@ -2108,6 +2108,8 @@ Customization or =project.el=
 
   (use-package project
     :after consult
+    :config
+    (setopt project-vc-extra-root-markers '(".project"))
     :custom
     (project-switch-commands
      '((project-find-file "Find file")
