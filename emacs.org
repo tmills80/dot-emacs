@@ -2359,6 +2359,14 @@ https://github.com/vmargb/project-x
   ;; tab-bar-mode integration (optional)
   (project-x-tabs-mode 1))
 #+end_src
+** TODO zotero
+#+begin_src emacs-lisp  :tangle twem2-config-modules/twem2-trial.el
+  (use-package zotero
+    :unless twem2--is-work
+    :ensure t
+    :config
+    (require 'zotero-browser))
+#+end_src
 ** provide
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-trial.el
 (provide 'twem2-trial)
