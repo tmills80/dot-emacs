@@ -2492,6 +2492,14 @@ See docs for external dependencies for image support too
               :rev :newest))
 #+end_src
 
+*** agent-shell-attention
+#+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el
+  (use-package agent-shell-attention
+    :ensure t
+    :config
+    (agent-shell-attention-mode))
+#+end_src
+
 ** Provide twem2-ai
 #+begin_src emacs-lisp :tangle twem2-config-modules/twem2-ai.el :mkdirp t
   (provide 'twem2-ai)
