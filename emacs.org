@@ -2489,7 +2489,9 @@ See docs for external dependencies for image support too
   (use-package agent-shell-ediff
     :ensure t
     :vc (:url https://github.com/cassandracomar/agent-shell-ediff.git
-              :rev :newest))
+              :rev :newest)
+    :config
+    (agent-shell-ediff-mode 1))
 #+end_src
 
 *** agent-shell-attention
